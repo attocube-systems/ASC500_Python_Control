@@ -7,98 +7,232 @@ import numpy as np
 class ASC500Base:
     """
     Base class for ASC500, consisting of error handling, wrapping of the DBY
-    parameter set and get functions and server communication functionality
+    parameter set and get functions and server communication functionality.
     """
     # Address definitions
-    _OUTPUT_ACTIVATE = 0x0141  # command, enable or disable all outputs (1=activate, 0=deactivate)
-    _OUTPUT_Status = 0x0140  # Output status (1=active, 0=deactivated)
+    _OUTPUT_ACTIVATE = 0x0141 # Enable or disable all outputs
+    _OUTPUT_STATUS = 0x0140 # Output status
+
+    def ASC_errcheck(code, func, args):
+        """
+        Checks and interprets the return value of daisybase calls.
+
+        Parameters
+        ----------
+        code : int
+            Return value from the function
+        func : function
+            Function that is called
+        args : list
+            Parameters passed to the function
+        """
+        # daisybase returns
+        DYB_Ok = 0
+        DYB_Error = 1
+        DYB_Timeout = 2
+        DYB_NotConnected = 3
+        DYB_DriverError = 4
+        DYB_FileNotFound = 5
+        DYB_SrvNotFound = 6
+        DYB_ServerLost = 7
+        DYB_OutOfRange = 8
+        DYB_WrongContext = 9
+        DYB_XmlError = 10
+        DYB_OpenError = 11
+
+        if code == DYB_Ok:
+            pass
+        elif code == DYB_Error:
+            raise RuntimeError('Error: unspecific error in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        elif code == DYB_Timeout:
+            raise RuntimeError('Error: timeout error in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        elif code == DYB_NotConnected:
+            raise RuntimeError('Error: not connected error in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        elif code == DYB_DriverError:
+            raise RuntimeError('Error: driver error in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        elif code == DYB_FileNotFound:
+            raise RuntimeError('Error: device locked in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        elif code == DYB_SrvNotFound:
+            raise RuntimeError('Error: unknown error in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        elif code == DYB_ServerLost:
+            raise RuntimeError('Error: invalid device number in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        elif code == DYB_OutOfRange:
+            raise RuntimeError('Error: invalid axis number in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        elif code == DYB_WrongContext:
+            raise RuntimeError('Error: parameter out of range in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        elif code == DYB_XmlError:
+            raise RuntimeError('Error: function not available in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        elif code == DYB_OpenError:
+            raise RuntimeError('Error: file not available in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        else:
+            raise RuntimeError('Error: this should not happen in ' +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        return code
 
     def __init__(self, serverPath, portNr, dllPath):
         """
-        serverPath: points to the folder where daisysrv.exe lives
-        portNr: port number of the device
+        Initialises the class.
+
+        Parameters
+        ----------
+        serverPath : str
+            The folder where daisysrv.exe is found
+        portNr : int
+            Port number of the device
         """
         dll_loc = dllPath + 'daisybase.dll'
         assert os.path.isfile(dll_loc)
-        self.API = ct.cdll.LoadLibrary(dll_loc)
+        assert os.path.isdir(serverPath)
+        API = ct.cdll.LoadLibrary(dll_loc)
         self.serverPath = serverPath
         self.portNr = portNr
 
+        # Aliases for the functions from the dll. For handling return
+        # values: '.errcheck' is an attribute from ctypes.
+        # Taken from daisybase.h,v 1.13 2016/10/24 17:55:23
+        self._getParameterSync = API.DYB_getParameterSync
+        self._getParameterSync.errcheck = self.ASC_errcheck
+        self._getParameterASync = API.DYB_getParameterAsync
+        self._getParameterASync.errcheck = self.ASC_errcheck
+        self._init = API.DYB_init
+        self._init.errcheck = self.ASC_errcheck
+        self._run = API.DYB_run
+        self._run.errcheck = self.ASC_errcheck
+        self._setParameterSync = API.DYB_setParameterSync
+        self._setParameterSync.errcheck = self.ASC_errcheck
+        self._setParameterASync = API.DYB_setParameterAsync
+        self._setParameterASync.errcheck = self.ASC_errcheck
+
     def _getParameter(self, address, index=0, async_=False):
         """
-        Retrieves a parameter value and checks for errors. For SYNC, the
-        parameter is returned by reference, in ASYNC the parameter has to be
-        retrieved by a matching event callback (ASYNC will just return 0).
+        A/Synchronous inquiry about a parameter.
+        The function sends an inquiry about a single parameter value to the
+        server and waits for the answer. This may take a few ms at most.
+        The function must not be called in the context of a data or event
+        callback.
+
+        Parameters
+        ----------
+        address : int
+            Identification of the parameter
+        index : int
+            If defined for the parameter: subaddress, 0 otherwise
+        async_ : bool
+            Enable for ASYNC call
+
+        Returns
+        -------
+        data.value : int
+            The return of the SYNC call. In case of ASYNC, returns 0.
         """
         data = ct.c_int32(0)
         if not async_:
-            rc = self.API.DYB_getParameterSync(address, index, ct.byref(data))
+            self._getParameterSync(address, index, ct.byref(data))
         else:
-            rc = self.API.DYB_getParameterAsync(address, index)
+            self._getParameterASync(address, index)
         return data.value
 
     def _setParameter(self, address, value, index=0, async_=False):
         """
-        Sets a parameter and checks for errors. The function also takes care of
-        type conversion of the input.
-        If succsessful, the return value is the parameter value as returned
-        from the server (SYNC) or 0 (ASYNC).
+        Generic function that sends a single parameter value to the server and
+        waits for the acknowledgement. The acknowledged value is returned.
+        The semantics depends on the address and the index (if applicable).
+        The function must not be called in the context of a data or event
+        callback.
+
+        Parameters
+        ----------
+        address : int
+            Identification of the parameter
+        index : int
+            If defined for the parameter: subaddress, 0 otherwise
+        async_ : bool
+            Enable for ASYNC call
+
+        Returns
+        -------
+        ret.value : int
+            The return of the SYNC call. In case of ASYNC, returns 0.
         """
         value = ct.c_int32(int(value))
-        returned = ct.c_int32(0)
+        ret = ct.c_int32(0)
         if not async_:
-            rc = self.API.DYB_setParameterSync(address, index, value, ct.byref(returned))
+            self._setParameterSync(address, index, value, ct.byref(ret))
         else:
-            rc = self.API.DYB_setParameterAsync(address, index, value)
-        return returned.value
+            self._setParameterAsync(address, index, value)
+        return ret.value
 
     @property
     def output(self):
         """
-        Returns output status (all outputs) as a boolean:
-            0 - all off, 1 - all on
+        Returns output status (*all* outputs) as a boolean: 0: off, 1: on.
         """
-        return self._getParameter(self._OUTPUT_Status)
+        return self._getParameter(self._OUTPUT_STATUS)
 
     @output.setter
     def output(self, enable):
         """
-        Activates or deactivates all outputs of the asc500
+        Activates or deactivates all outputs of the ASC500.
+
+        Parameters
+        ----------
+        enable : int
+            0: disable, 1: enable
         """
         self._setParameter(self._OUTPUT_ACTIVATE, enable)
 
     def startServer(self):
         """
-        Configures connection to daisybase and starts server
+        Configures connection to daisybase and starts server.
         """
-        # initialize server connection
-        binPath = self.serverPath.encode('utf-8') # create byte object from string
+        binPath = self.serverPath.encode('utf-8')
         assert os.path.isdir(binPath)
-        rc = self.API.DYB_init(0, binPath, 0, self.portNr)
-
-        # run daisybase (without GUI stuff)
-        rc = self.API.DYB_run()
+        self._init(0, binPath, 0, self.portNr)
+        # Run daisybase (without GUI)
+        self._run()
 
 class ASC500ScannerXY(ASC500Base):
     # Address definitions
-    # Scanner
-    # Scanner Coordinates
-    _SCAN_CURR_X = 0x002A  # Scanner position relative to voltage origin X [10pm].
-    _SCAN_CURR_Y = 0x002B  # Scanner position relative to voltage origin Y [10pm].
-    # Scanner Settings
-    _SCAN_OFFSET_X = 0x0010  # Center of the scanfield, relative to origin [10pm] in X
-    _SCAN_OFFSET_Y = 0x0011  # Center of the scanfield, relative to origin [10pm] in Y
-    _SCAN_PIXEL = 0x1021  # Pixel size [10pm]
-    _SCAN_PSPEED = 0x100B  # Positioning speed [nm/s]
+    # Scanner coordinates
+    _SCAN_CURR_X = 0x002A # Scanner position relative to voltage origin X [10pm]
+    _SCAN_CURR_Y = 0x002B # Scanner position relative to voltage origin Y [10pm]
+    # Scanner settings
+    _SCAN_OFFSET_X = 0x0010 # Centre of the scanfield, relative to origin [10pm] in X
+    _SCAN_OFFSET_Y = 0x0011 # Centre of the scanfield, relative to origin [10pm] in Y
+    _SCAN_PIXEL = 0x1021 # Pixel size [10pm]
+    _SCAN_PSPEED = 0x100B # Positioning speed [nm/s]
     # Scanner command
-    _SCAN_COMMAND = 0x0100  # Scanner command (SCANRUN_ constants)
-    # Scanner State
-    _SCAN_STATUS = 0x0101  # Scanner running state
-    # Path Mode
-    _PATH_CTRL = 0x0263     # Pathmode mode: -1=grid, >1=no of points of path.
+    _SCAN_COMMAND = 0x0100 # Scanner command (SCANRUN_ constants)
+    # Scanner state
+    _SCAN_STATUS = 0x0101 # Scanner running state
+    # Path mode
+    _PATH_CTRL = 0x0263 # Pathmode mode: -1=grid, >1=no of points of path
     _PATH_EXTTRIG_EDGE = 0x0272 # Pathmode edge of external trigger (0=rising, 1=falling)
-    _PATH_XPOINT = 0x1302   # Position in [10pm]. Index corresponds to point number.
-    _PATH_YPOINT = 0x1303   # Position in [10pm]. Index corresponds to point number.
+    _PATH_XPOINT = 0x1302 # Position in [10pm]. Index corresponds to point number
+    _PATH_YPOINT = 0x1303 # Position in [10pm]. Index corresponds to point number
 
     class ScannerState(Enum):
         PAUSE = 1
@@ -109,7 +243,7 @@ class ASC500ScannerXY(ASC500Base):
 
     def getStatus(self):
         """
-        Returns status of the scanner, as a ScannerState object
+        Returns status of the scanner, as a ScannerState object.
         """
         state = self._getParameter(self._SCAN_STATUS)
         return self.ScannerState(state)
@@ -130,8 +264,8 @@ class ASC500ScannerXY(ASC500Base):
             # scanner unit is nm/s: m?s -> nm/s
             convFactor = 1e9
         if reverse:
-            return value/convFactor
-        return round(value*convFactor)
+            return value / convFactor
+        return np.round(value * convFactor)
 
     @property
     def position(self):
