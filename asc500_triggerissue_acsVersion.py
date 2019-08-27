@@ -261,7 +261,7 @@ class ASC500ScannerXY(ASC500Base):
             # position unit is 10pm: m -> 10pm
             convFactor = 1e11
         elif type_ == 'Velocity':
-            # scanner unit is nm/s: m?s -> nm/s
+            # scanner unit is nm/s: m/s -> nm/s
             convFactor = 1e9
         if reverse:
             return value / convFactor
