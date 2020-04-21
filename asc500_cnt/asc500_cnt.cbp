@@ -22,9 +22,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="example500_counter.c">
-			<Option compilerVar="CC" />
-		</Unit>
+		<Unit filename="example500_counter.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
