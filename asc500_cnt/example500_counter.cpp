@@ -12,25 +12,23 @@
  *  Adapt the path and filenames to your installation
  */
 #ifdef unix
-#define BIN_PATH     "../.."              /* Daisy installation directory */
-#define PROFILE_FILE "../../afm.ngp"      /* Profile for base settings    */
-#include <unistd.h>                       /* unistd.h for usleep          */
-#include <stdlib.h>                       /* for atoi                     */
-#define SLEEP(x) usleep(x*1000)
-
+    #define BIN_PATH     "../.."              /* Daisy installation directory */
+    #define PROFILE_FILE "../../afm.ngp"      /* Profile for base settings    */
+    #include <unistd.h>                       /* unistd.h for usleep          */
+    #include <stdlib.h>                       /* for atoi                     */
+    #define SLEEP(x) usleep(x*1000)
 #else
-
-#define BIN_PATH     "..\\.."             /* Daisy installation directory */
-#define PROFILE_FILE "..\\..\\afm.ngp"    /* Profile for base settings    */
-#include <windows.h>                      /* windows.h for Sleep          */
-#define SLEEP(x) Sleep(x)
+    #define BIN_PATH     "..\\.."             /* Daisy installation directory */
+    #define PROFILE_FILE "..\\..\\afm.ngp"    /* Profile for base settings    */
+    #include <windows.h>                      /* windows.h for Sleep          */
+    #define SLEEP(x) Sleep(x)
 #endif
 
 
 /*
- *  Some arbitrary parameter values used here
+ *  Channel 23 set for counter
  */
-#define CHANNELNO                0        /* Channel for data transfer     */
+#define CHANNELNO               23        /* Channel for data transfer     */
 #define COLUMNS                100        /* Scanrange number of columns   */
 #define LINES                  150        /* Scanrange number of lines     */
 #define PIXELSIZE             1000        /* Width of a column/line [10pm] */
@@ -39,7 +37,7 @@
 
 
 /* Print error code if not "Ok" */
-static void checkRc(const char *call, DYB_Rc rc)
+static void checkRc(const char *call, const DYB_Rc rc)
 {
     if(rc != DYB_Ok)
     {
@@ -70,11 +68,7 @@ static DYB_Rc pollDataFull()
     /* Wait for full buffer and show progress */
     while(event == 0 /* means timeout */ && rc == DYB_Ok)
     {
-//        double x, y;
         event = DYB_waitForEvent(500, DYB_EVT_DATA_00, 0 /* not relevant */);
-//    rc = ASC500_getXYPos( &x, &y );
-//    checkRc( "ASC500_getXYPos", rc );
-//        printf("Scanner at (%.9g , %.9g) um\n", x, y);
     }
 
     /* Read and print data frame */
@@ -185,10 +179,6 @@ int main(int argc, char **argv)
         SLEEP(50);
     }
 
-    /* Start scanner */
-//  rc = sendScannerCommand( SCANRUN_ON );
-//  checkRc( "sendScannerCommand", rc );
-
     /* Acquire data using the selected method */
     switch(variant)
     {
@@ -203,7 +193,6 @@ int main(int argc, char **argv)
     }
 
     /* Stop it and exit. This time use wait for event instead of polling */
-//    sendScannerCommand(SCANRUN_OFF);
     setParameter(ID_OUTPUT_ACTIVATE, 0, 0);
     DYB_waitForEvent(5000, DYB_EVT_CUSTOM, ID_OUTPUT_STATUS);
     DYB_getParameterSync(ID_OUTPUT_STATUS, 0, &outActive);
