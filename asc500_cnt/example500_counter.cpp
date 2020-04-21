@@ -1,19 +1,9 @@
-/*******************************************************************************
- *
- *  Project:        Daisy Client Library
- *
- *  Filename:       example500.c
- *
- *  Purpose:        Example for using daisybase lib with ASC500
- *
- *  Author:         NHands GmbH & Co KG
- *
- *******************************************************************************/
+
 /* $Id: example500.c,v 1.10 2018/03/22 16:08:42 trurl Exp $ */
 
-#define _USE_MATH_DEFINES // required by MSVC for M_PI
 #include <math.h>
 #include <stdio.h>
+#include "metadata.h"
 #include "daisybase.h"
 #include "daisydata.h"
 #include "asc500.h"
@@ -80,11 +70,11 @@ static DYB_Rc pollDataFull()
     /* Wait for full buffer and show progress */
     while(event == 0 /* means timeout */ && rc == DYB_Ok)
     {
-        double x, y;
+//        double x, y;
         event = DYB_waitForEvent(500, DYB_EVT_DATA_00, 0 /* not relevant */);
 //    rc = ASC500_getXYPos( &x, &y );
 //    checkRc( "ASC500_getXYPos", rc );
-        printf("Scanner at (%.9g , %.9g) um\n", x, y);
+//        printf("Scanner at (%.9g , %.9g) um\n", x, y);
     }
 
     /* Read and print data frame */
@@ -147,7 +137,7 @@ static DYB_Rc pollDataPartial()
 int main(int argc, char **argv)
 {
     DYB_Rc   rc = DYB_Ok;
-    Int32    outActive = 0, event = 0, variant = 0;
+    Int32    outActive = 0, variant = 0;
 
     if(argc > 1)
     {

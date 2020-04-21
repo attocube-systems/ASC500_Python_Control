@@ -14,14 +14,14 @@
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
-				<Linker>
-					<Add option="daisybase.lib" />
-				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Linker>
+			<Add option="daisybase.lib" />
+		</Linker>
 		<Unit filename="example500_counter.cpp" />
 		<Extensions>
 			<code_completion />
