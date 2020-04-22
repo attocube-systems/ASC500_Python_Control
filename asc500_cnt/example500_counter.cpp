@@ -15,8 +15,7 @@
 
 #define BIN_PATH     "..\\Installer\\ASC500CL-V2.7.6"             /* Daisy installation directory */
 #define PROFILE_FILE "..\\Installer\\ASC500CL-V2.7.6\\afm.ngp"    /* Profile for base settings    */
-#include <windows.h>                      /* windows.h for Sleep          */
-#define SLEEP(x) Sleep(x)
+#include <windows.h>
 
 /*
  *  Channel 23 set for counter
@@ -92,7 +91,7 @@ static DYB_Rc pollDataPartial()
               dataSize = FRAMESIZE;
         char fn[128];
 
-        SLEEP(200);
+        Sleep(200);
         /* Read as much data as available */
         rc = DYB_getDataBuffer(CHANNELNO, 0, &frameNo, &index, &dataSize, frame, &meta);
         checkRc("DYB_getDataBuffer", rc);
@@ -139,7 +138,7 @@ int main(int argc, char **argv)
     checkRc("DYB_sendProfile", rc);
 
     /* Configure data channel 0 and enable data buffering */
-    rc = DYB_configureChannel(CHANNELNO,             /* Channel 0           */
+    rc = DYB_configureChannel(0,            /* Channel             */
                               CHANCONN_SCANNER,     /* Trigger by scanner  */
                               CHANADC_ADC_MIN + 1,  /* Source is ADC 2     */
                               0,                    /* Don't average       */
@@ -166,7 +165,7 @@ int main(int argc, char **argv)
         rc = DYB_getParameterSync(ID_OUTPUT_STATUS, 0, &outActive);
         checkRc("DYB_getParameterSync", rc);
         printf("Output Status: %d\n", outActive);
-        SLEEP(50);
+        Sleep(50);
     }
 
     /* Acquire data using the selected method */
