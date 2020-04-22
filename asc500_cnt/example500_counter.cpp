@@ -1,8 +1,9 @@
 
-/* $Id: example500.c,v 1.10 2018/03/22 16:08:42 trurl Exp $ */
 
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
+#include <cassert>
+
 #include "metadata.h"
 #include "daisybase.h"
 #include "daisydata.h"
@@ -11,19 +12,11 @@
 /*
  *  Adapt the path and filenames to your installation
  */
-#ifdef unix
-    #define BIN_PATH     "../.."              /* Daisy installation directory */
-    #define PROFILE_FILE "../../afm.ngp"      /* Profile for base settings    */
-    #include <unistd.h>                       /* unistd.h for usleep          */
-    #include <stdlib.h>                       /* for atoi                     */
-    #define SLEEP(x) usleep(x*1000)
-#else
-    #define BIN_PATH     "..\\.."             /* Daisy installation directory */
-    #define PROFILE_FILE "..\\..\\afm.ngp"    /* Profile for base settings    */
-    #include <windows.h>                      /* windows.h for Sleep          */
-    #define SLEEP(x) Sleep(x)
-#endif
 
+#define BIN_PATH     "..\\Installer\\ASC500CL-V2.7.6"             /* Daisy installation directory */
+#define PROFILE_FILE "..\\Installer\\ASC500CL-V2.7.6\\afm.ngp"    /* Profile for base settings    */
+#include <windows.h>                      /* windows.h for Sleep          */
+#define SLEEP(x) Sleep(x)
 
 /*
  *  Channel 23 set for counter
@@ -40,9 +33,7 @@
 static void checkRc(const char *call, const DYB_Rc rc)
 {
     if(rc != DYB_Ok)
-    {
         printf("%s failed : %s\n", call, DYB_printRc(rc));
-    }
 }
 
 
@@ -51,38 +42,36 @@ static void setParameter(Int32 id, Int32 index, Int32 value)
 {
     DYB_Rc rc = DYB_setParameterAsync(id, index, value);
     if(rc != DYB_Ok)
-    {
-        printf("DYB_setParameterAsync failed for id %x,%x : %s\n", id, index, DYB_printRc(rc));
-    }
+        printf("DYB_setParameterAsync failed for id %x,%x : %s\n",
+               id, index, DYB_printRc(rc));
 }
 
 
 /* Wait for the first full buffer and write it to a file */
 static DYB_Rc pollDataFull()
 {
-    DYB_Rc   rc = DYB_Ok;
-    Int32    frame[FRAMESIZE];
-    Int32    event = 0, index = 0, dataSize = FRAMESIZE;
+    DYB_Rc rc = DYB_Ok;
+    Int32 frame[FRAMESIZE];
+    Int32 event = 0,
+          index = 0,
+          dataSize = FRAMESIZE;
     DYB_Meta meta;
 
     /* Wait for full buffer and show progress */
     while(event == 0 /* means timeout */ && rc == DYB_Ok)
-    {
         event = DYB_waitForEvent(500, DYB_EVT_DATA_00, 0 /* not relevant */);
-    }
 
     /* Read and print data frame */
-    if(rc == DYB_Ok)
-    {
-        printf("Reading frame; buffer size = %d, frame size = %d\n",
-               dataSize, DYB_getFrameSize(CHANNELNO));
-        rc = DYB_getDataBuffer(CHANNELNO, 1, NULL /* ignore */, &index, &dataSize, frame, &meta);
-        checkRc("DYB_getDataBuffer", rc);
-        rc = DYB_writeBuffer("demo_fwd", "ADC2", 0, 1, index, dataSize, frame, &meta);
-        checkRc("DYB_writeBuffer", rc);
-        rc = DYB_writeBuffer("demo_bwd", "ADC2", 0, 0, index, dataSize, frame, &meta);
-        checkRc("DYB_writeBuffer", rc);
-    }
+    assert(rc == DYB_Ok);
+
+    printf("Reading frame; buffer size = %d, frame size = %d\n",
+           dataSize, DYB_getFrameSize(CHANNELNO));
+    rc = DYB_getDataBuffer(CHANNELNO, 1, NULL /* ignore */, &index, &dataSize, frame, &meta);
+    checkRc("DYB_getDataBuffer", rc);
+    rc = DYB_writeBuffer("demo_fwd", "ADC2", 0, 1, index, dataSize, frame, &meta);
+    checkRc("DYB_writeBuffer", rc);
+    rc = DYB_writeBuffer("demo_bwd", "ADC2", 0, 0, index, dataSize, frame, &meta);
+    checkRc("DYB_writeBuffer", rc);
 
     return rc;
 }
@@ -91,15 +80,17 @@ static DYB_Rc pollDataFull()
 /* Cyclically read incomplete frame and write it to a file */
 static DYB_Rc pollDataPartial()
 {
-    DYB_Rc   rc = DYB_Ok;
-    int      loop = 0;
+    DYB_Rc rc = DYB_Ok;
+    int loop = 0;
 
     while(rc == DYB_Ok && loop < 100)
     {
-        Int32    frame[FRAMESIZE];
+        Int32 frame[FRAMESIZE];
         DYB_Meta meta;
-        Int32 index = 0, frameNo = 0, dataSize = FRAMESIZE;
-        char  fn[128];
+        Int32 index = 0,
+              frameNo = 0,
+              dataSize = FRAMESIZE;
+        char fn[128];
 
         SLEEP(200);
         /* Read as much data as available */
@@ -130,13 +121,12 @@ static DYB_Rc pollDataPartial()
  */
 int main(int argc, char **argv)
 {
-    DYB_Rc   rc = DYB_Ok;
-    Int32    outActive = 0, variant = 0;
+    DYB_Rc rc = DYB_Ok;
+    Int32 outActive = 0,
+          variant = 0;
 
     if(argc > 1)
-    {
-        variant = atoi(argv[1]);    /* Selects data acquisition variant */
-    }
+        variant = atoi(argv[1]); /* Selects data acquisition variant */
 
     /* Initialize & start */
     rc = DYB_init(0, BIN_PATH, 0, ASC500_PORT_NUMBER);
