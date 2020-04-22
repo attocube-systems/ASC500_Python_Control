@@ -17,7 +17,7 @@
  *  Attocube ASC500 SPM controller.
  */
 /******************************************************************************/
-/* $Id: asc500.h,v 1.24.2.2 2018/10/16 09:36:14 trurl Exp $ */
+/* $Id: asc500.h,v 1.24.2.5 2019/08/22 16:48:25 trurl Exp $ */
 
 #ifndef __ASC500_H
 #define __ASC500_H
@@ -215,6 +215,10 @@
 #define ID_SCAN_ACCEL_PRC     0x0053  /**< Scanner share of accel distance outside scanrange [%]  */
 #define ID_CL_USESENPOS       0x01FE  /**< Scanner use sensor position for closed loop (bool)     */
 #define ID_CL_RESTORE         0x02F8  /**< Scanner clear saturation error (command)               */
+
+#define ID_POSI_TARGET_X      0x0027  /**< Scanner absolute target position X [10pm]              */
+#define ID_POSI_TARGET_Y      0x0028  /**< Scanner absolute target position Y [10pm]              */
+#define ID_POSI_GOTO          0x003A  /**< Scanner move to absolute target position (command)     */
 
 #define ID_SCAN_DUALLINE      0x0210  /**< Dual line mode on (boolean)                            */
 #define ID_REG_MFM_EN         0x005D  /**< Dual line mode feedback: 0=feedback, 1=1st line profile*/
@@ -498,8 +502,12 @@
 #define ID_SPEC_PATHMANSTAT   0x0267  /**< Pathmode handshake request (read only)                 */
 #define ID_PATH_GRIDP_X       0x026D  /**< Pathmode number of grid points X                       */
 #define ID_PATH_GRIDP_Y       0x026E  /**< Pathmode number of grid points Y                       */
-#define ID_EXTTRG_TIME        0x0271  /**< Pathmode duration of external trigger pulse [us]       */
-#define ID_EXTTRG_EDGE        0x0272  /**< Pathmode edge of external trigger (0=rising, 1=falling)*/
+#define ID_EXTTRG_HS          0x0277  /**< Pathmode ext handshake enable (boolean)                */
+#define ID_EXTTRG_COUNT       0x0276  /**< Pathmode ext handshake number of triggers, default=1   */
+#define ID_EXTTRG_TIMEOUT     0x0278  /**< Pathmode ext handshake timeout [ms]                    */
+#define ID_EXTTRG_STATUS      0x0275  /**< Pathmode ext handshake waiting (boolean, read only)    */
+#define ID_EXTTRG_TIME        0x0271  /**< Pathmode ext handshake pulse duration [us]             */
+#define ID_EXTTRG_EDGE        0x0272  /**< Pathmode ext handshake edge (0=rising, 1=falling)      */
 #define ID_REG_Z_HOME_M       0x10F2  /**< Pathmode Z home position for "move home" action [pm]   */
 
 /** Path Points

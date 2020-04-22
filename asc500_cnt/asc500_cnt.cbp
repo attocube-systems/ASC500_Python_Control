@@ -14,12 +14,8 @@
 				<Option compiler="mingw-w64-win32" />
 				<Compiler>
 					<Add option="-pedantic" />
-					<Add option="-m32" />
 					<Add option="-g" />
 				</Compiler>
-				<Linker>
-					<Add option="-m32" />
-				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
