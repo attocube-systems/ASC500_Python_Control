@@ -123,6 +123,7 @@
 #define CHANADC_CROSSLINK_2   30      /**< Data source: crosslink 2                               */
 #define CHANADC_SENSOR_POS_X  31      /**< Data source: Position sensor X (raw) (if available)    */
 #define CHANADC_SENSOR_POS_Y  32      /**< Data source: Position sensor Y (raw) (if available)    */
+#define CHANADC_COUNTER 23
 /* @} */
 
 
@@ -150,7 +151,7 @@
  *  and low temperature (index 1). @ref ID_PIEZO_T_LIM holds the two temperature values themselves.
  *  With @ref ID_PIEZO_TEMP the actual temperature can be set. It controls the interpolation of
  *  the actual voltage and deflection limits between the two fixed points.
- *  
+ *
  *  The actual (i.e. interpolated) limits can be read back at separate adresses.
  *  @{
  */
@@ -245,7 +246,7 @@
  *  represent the running state of the scan engine - see SCANSTATE_ constants for bit masks.
  *  The saturation warning is set when the closed loop controller is running out of range; the
  *  value provides its current direction. The scanner position is relative to the voltage origin.
- *  
+ *
  *  All messages are sent autonomously by the ASC500 and can be retreived with DYB_get
  *  functions as well as by setting up an event callback. They are read only; index is 0.
  *  @{
@@ -588,7 +589,7 @@
 /* @} */
 
 
-/** @name Data Units 
+/** @name Data Units
  *
  *  @anchor DUnits
  *  Constants used by e.g. @ref ID_GUI_UNIT_GENREG to inform about
