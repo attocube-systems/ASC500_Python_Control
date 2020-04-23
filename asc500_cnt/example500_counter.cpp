@@ -67,9 +67,9 @@ static DYB_Rc pollDataFull()
            dataSize, DYB_getFrameSize(CHANNELNO));
     rc = DYB_getDataBuffer(CHANNELNO, 1, NULL /* ignore */, &index, &dataSize, frame, &meta);
     checkRc("DYB_getDataBuffer", rc);
-    rc = DYB_writeBuffer("demo_fwd", "ADC2", 0, 1, index, dataSize, frame, &meta);
+    rc = DYB_writeBuffer("data_output//demo_fwd", "ADC2", 0, 1, index, dataSize, frame, &meta);
     checkRc("DYB_writeBuffer", rc);
-    rc = DYB_writeBuffer("demo_bwd", "ADC2", 0, 0, index, dataSize, frame, &meta);
+    rc = DYB_writeBuffer("data_output//demo_bwd", "ADC2", 0, 0, index, dataSize, frame, &meta);
     checkRc("DYB_writeBuffer", rc);
 
     return rc;
@@ -82,7 +82,7 @@ static DYB_Rc pollDataPartial()
     DYB_Rc rc = DYB_Ok;
     int loop = 0;
 
-    while(rc == DYB_Ok && loop < 100)
+    while(rc == DYB_Ok && loop < 10)
     {
         Int32 frame[FRAMESIZE];
         DYB_Meta meta;
@@ -100,7 +100,7 @@ static DYB_Rc pollDataPartial()
         if(dataSize > 0)
         {
             /* Writing empty buffer ends up with error */
-            sprintf(fn, "demo_fwd_%d", loop);
+            sprintf(fn, "data_output//demo_fwd_%d", loop);
             rc = DYB_writeBuffer(fn, "ADC2", 0, 1, index, dataSize, frame, &meta);
             checkRc("DYB_writeBuffer", rc);
         }
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 {
     DYB_Rc rc = DYB_Ok;
     Int32 outActive = 0,
-          variant = 0;
+          variant = 1;
 
     if(argc > 1)
         variant = atoi(argv[1]); /* Selects data acquisition variant */
