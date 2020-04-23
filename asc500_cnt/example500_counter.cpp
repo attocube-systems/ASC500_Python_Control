@@ -140,7 +140,7 @@ int main(int argc, char **argv)
     /* Configure data channel 0 and enable data buffering */
     rc = DYB_configureChannel(CHANNELNO,            /* Channel             */
                               CHANCONN_SCANNER,     /* Trigger by scanner  */
-                              CHANADC_COUNTER + 1,  /* Source is counter     */
+                              CHANADC_COUNTER,      /* Source is counter     */
                               0,                    /* Don't average       */
                               0.);                  /* Sample time ignored */
     checkRc("DYB_configureChannel", rc);
