@@ -123,7 +123,7 @@
 #define CHANADC_CROSSLINK_2   30      /**< Data source: crosslink 2                               */
 #define CHANADC_SENSOR_POS_X  31      /**< Data source: Position sensor X (raw) (if available)    */
 #define CHANADC_SENSOR_POS_Y  32      /**< Data source: Position sensor Y (raw) (if available)    */
-#define CHANADC_COUNTER 23
+#define CHANADC_COUNTER       23
 /* @} */
 
 

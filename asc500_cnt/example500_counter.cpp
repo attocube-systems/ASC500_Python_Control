@@ -20,7 +20,7 @@
 /*
  *  Channel 23 set for counter
  */
-#define CHANNELNO               23        /* Channel for data transfer     */
+#define CHANNELNO                0        /* Channel for data transfer     */
 #define COLUMNS                100        /* Scanrange number of columns   */
 #define LINES                  150        /* Scanrange number of lines     */
 #define PIXELSIZE             1000        /* Width of a column/line [10pm] */
@@ -138,9 +138,9 @@ int main(int argc, char **argv)
     checkRc("DYB_sendProfile", rc);
 
     /* Configure data channel 0 and enable data buffering */
-    rc = DYB_configureChannel(0,            /* Channel             */
+    rc = DYB_configureChannel(CHANNELNO,            /* Channel             */
                               CHANCONN_SCANNER,     /* Trigger by scanner  */
-                              CHANADC_ADC_MIN + 1,  /* Source is ADC 2     */
+                              CHANADC_COUNTER + 1,  /* Source is counter     */
                               0,                    /* Don't average       */
                               0.);                  /* Sample time ignored */
     checkRc("DYB_configureChannel", rc);
