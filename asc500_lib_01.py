@@ -2,18 +2,21 @@ import time
 import ctypes as ct
 import os
 from enum import Enum
+import asc500_const
 import numpy as np
+
+#%%
 
 class ASC500Base:
     """
     Base class for ASC500, consisting of error handling, wrapping of the DBY
     parameter set and get functions and server communication functionality.
     """
-    # Address definitions
-    _OUTPUT_ACTIVATE = 0x0141 # Enable or disable all outputs
-    _OUTPUT_STATUS = 0x0140 # Output status
 
-    def ASC_errcheck(code, func, args):
+    _OUTPUT_ACTIVATE = getConst('ID_OUTPUT_ACTIVATE')
+    _OUTPUT_STATUS = getConst('ID_OUTPUT_STATUS')
+
+    def ASC_errcheck(self, code, func, args):
         """
         Checks and interprets the return value of daisybase calls.
 
@@ -26,71 +29,42 @@ class ASC500Base:
         args : list
             Parameters passed to the function
         """
-        # daisybase returns
-        DYB_Ok = 0
-        DYB_Error = 1
-        DYB_Timeout = 2
-        DYB_NotConnected = 3
-        DYB_DriverError = 4
-        DYB_FileNotFound = 5
-        DYB_SrvNotFound = 6
-        DYB_ServerLost = 7
-        DYB_OutOfRange = 8
-        DYB_WrongContext = 9
-        DYB_XmlError = 10
-        DYB_OpenError = 11
+        # daisybase returns defined in "daisybase.h"
+        DYB_Rc = {
+            0 : "No error",
+            1 : "Unknown / other error",
+            2 : "Communication timeout",
+            3 : "No contact to controller via USB",
+            4 : "Error when calling USB driver",
+            5 : "Controller boot image not found",
+            6 : "Server executable not found",
+            7 : "No contact to the server",
+            8 : "Invalid parameter in function call",
+            9 : "Call in invalid thread context",
+            10 : "Invalid format of profile file",
+            11 : "Can't open specified file"}
 
-        if code == DYB_Ok:
-            pass
-        elif code == DYB_Error:
-            raise RuntimeError('Error: unspecific error in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
-        elif code == DYB_Timeout:
-            raise RuntimeError('Error: timeout error in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
-        elif code == DYB_NotConnected:
-            raise RuntimeError('Error: not connected error in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
-        elif code == DYB_DriverError:
-            raise RuntimeError('Error: driver error in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
-        elif code == DYB_FileNotFound:
-            raise RuntimeError('Error: device locked in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
-        elif code == DYB_SrvNotFound:
-            raise RuntimeError('Error: unknown error in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
-        elif code == DYB_ServerLost:
-            raise RuntimeError('Error: invalid device number in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
-        elif code == DYB_OutOfRange:
-            raise RuntimeError('Error: invalid axis number in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
-        elif code == DYB_WrongContext:
-            raise RuntimeError('Error: parameter out of range in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
-        elif code == DYB_XmlError:
-            raise RuntimeError('Error: function not available in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
-        elif code == DYB_OpenError:
-            raise RuntimeError('Error: file not available in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
-        else:
-            raise RuntimeError('Error: this should not happen in ' +
-                               str(func.__name__) +
-                               ' with parameters: ' + str(args))
+        if code != DYB_Rc[0]:
+            RuntimeError('Error: {:}'.format(DYB_Rc[code]) +
+                         str(func.__name__) +
+                         ' with parameters: ' + str(args))
         return code
+
+    def getConst(self, symbol):
+        """
+        Gets string and returns constant defined in ASC500 headers.
+
+        Parameters
+        ----------
+        symbol : str
+            Constant name.
+
+        Returns
+        -------
+        int
+            Integer of constant.
+        """
+        return int(asc500_const.cc.get(symbol), base=16)
 
     def __init__(self, serverPath, portNr, dllPath):
         """
@@ -113,18 +87,91 @@ class ASC500Base:
         # Aliases for the functions from the dll. For handling return
         # values: '.errcheck' is an attribute from ctypes.
         # Taken from daisybase.h,v 1.13 2016/10/24 17:55:23
-        self._getParameterSync = API.DYB_getParameterSync
-        self._getParameterSync.errcheck = self.ASC_errcheck
-        self._getParameterASync = API.DYB_getParameterAsync
-        self._getParameterASync.errcheck = self.ASC_errcheck
+        self._DataCallback = API.DYB_DataCallback
+        self._DataCallback.errcheck = self.ASC_errcheck
+        self._EventCallback = API.DYB_EventCallback
+        self._EventCallback.errcheck = self.ASC_errcheck
+
         self._init = API.DYB_init
         self._init.errcheck = self.ASC_errcheck
         self._run = API.DYB_run
         self._run.errcheck = self.ASC_errcheck
-        self._setParameterSync = API.DYB_setParameterSync
-        self._setParameterSync.errcheck = self.ASC_errcheck
+        self._stop = API.DYB_stop
+        self._stop.errcheck = self.ASC_errcheck
+        self._reset = API.DYB_reset
+        self._reset.errcheck = self.ASC_errcheck
+
+        self._setDataCallback = API.DYB_setDataCallback
+        self._setDataCallback.errcheck = self.ASC_errcheck
+        self._setEventCallback = API.DYB_setEventCallback
+        self._setEventCallback.errcheck = self.ASC_errcheck
+
         self._setParameterASync = API.DYB_setParameterAsync
         self._setParameterASync.errcheck = self.ASC_errcheck
+        self._setParameterSync = API.DYB_setParameterSync
+        self._setParameterSync.errcheck = self.ASC_errcheck
+
+        self._getParameterASync = API.DYB_getParameterAsync
+        self._getParameterASync.errcheck = self.ASC_errcheck
+        self._getParameterSync = API.DYB_getParameterSync
+        self._getParameterSync.errcheck = self.ASC_errcheck
+
+        self._sendProfile = API.DYB_sendProfile
+        self._sendProfile.errcheck = self.ASC_errcheck
+
+        # Aliases for the functions from the dll. For handling return
+        # values: '.errcheck' is an attribute from ctypes.
+        # Taken from daisydata.h,v 1.4 2016/12/01 18:02:32
+        self._printRc = API.DYB_printRc
+        self._printRc.errcheck = self.ASC_errcheck
+        self._printUnit = API.DYB_printUnit
+        self._printUnit.errcheck = self.ASC_errcheck
+        self._configureChannel = API.DYB_configureChannel
+        self._configureChannel.errcheck = self.ASC_errcheck
+        self._getChannelConfig = API.DYB_getChannelConfig
+        self._getChannelConfig.errcheck = self.ASC_errcheck
+        self._configureDataBuffering = API.DYB_configureDataBuffering
+        self._configureDataBuffering.errcheck = self.ASC_errcheck
+        self._getFrameSize = API.DYB_getFrameSize
+        self._getFrameSize.errcheck = self.ASC_errcheck
+        self._getDataBuffer = API.DYB_getDataBuffer
+        self._getDataBuffer.errcheck = self.ASC_errcheck
+        self._writeBuffer = API.DYB_writeBuffer
+        self._writeBuffer.errcheck = self.ASC_errcheck
+        self._waitForEvent = API.DYB_waitForEvent
+        self._waitForEvent.errcheck = self.ASC_errcheck
+
+        # Aliases for the functions from the dll. For handling return
+        # values: '.errcheck' is an attribute from ctypes.
+        # Taken from metadata.h,v 1.12.8.1 2018/10/11 08:50:55
+        self._getOrder = API.DYB_getOrder
+        self._getOrder.errcheck = self.ASC_errcheck
+        self._getPointsX = API.DYB_getPointsX
+        self._getPointsX.errcheck = self.ASC_errcheck
+        self._getPointsY = API.DYB_getPointsY
+        self._getPointsY.errcheck = self.ASC_errcheck
+        self._getUnitXY= API.DYB_getUnitXY
+        self._getUnitXY.errcheck = self.ASC_errcheck
+        self._getUnitVal = API.DYB_getUnitVal
+        self._getUnitVal.errcheck = self.ASC_errcheck
+        self._getRotation = API.DYB_getRotation
+        self._getRotation.errcheck = self.ASC_errcheck
+        self._getPhysRangeX = API.DYB_getPhysRangeX
+        self._getPhysRangeX.errcheck = self.ASC_errcheck
+        self._getPhysRangeY = API.DYB_getPhysRangeY
+        self._getPhysRangeY.errcheck = self.ASC_errcheck
+        self._convIndex2Pixel = API.DYB_convIndex2Pixel
+        self._convIndex2Pixel.errcheck = self.ASC_errcheck
+        self._convIndex2Direction = API.DYB_convIndex2Direction
+        self._convIndex2Direction.errcheck = self.ASC_errcheck
+        self._convIndex2Phys1 = API.DYB_convIndex2Phys1
+        self._convIndex2Phys1.errcheck = self.ASC_errcheck
+        self._convIndex2Phys2 = API.DYB_convIndex2Phys2
+        self._convIndex2Phys2.errcheck = self.ASC_errcheck
+        self._convValue2Phys = API.DYB_convValue2Phys
+        self._convValue2Phys.errcheck = self.ASC_errcheck
+        self._convPhys2Print = API.DYB_convPhys2Print
+        self._convPhys2Print.errcheck = self.ASC_errcheck
 
     def _getParameter(self, address, index=0, async_=False):
         """
@@ -182,7 +229,7 @@ class ASC500Base:
         if not async_:
             self._setParameterSync(address, index, value, ct.byref(ret))
         else:
-            self._setParameterAsync(address, index, value)
+            self._setParameterASync(address, index, value)
         return ret.value
 
     @property

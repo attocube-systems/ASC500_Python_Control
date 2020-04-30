@@ -12,45 +12,46 @@
 # $Id: example500.c,v 1.10 2018/03/22 16:08:42 trurl Exp $
 
 
-from ctypes import *
+#from ctypes import *
+import ctypes as ct
 import time
-import asc500const
+import asc500_const
 
 # ASC500 Wrapper class --------------------------------------------------------------
 class Asc500:
     def __init__(self):
         # Load Daisybase DLL ...
-        self.daisybase = CDLL('daisybase.dll')
+        self.daisybase = ct.CDLL('daisybase.dll')
         # ... and define the parameter types of its functions ...
         # ... from daisybase.h
-        self.daisybase.DYB_init.argtypes              = [c_char_p,c_char_p,c_char_p,c_int32]
-        self.daisybase.DYB_init.restype               = c_int32
+        self.daisybase.DYB_init.argtypes              = [ct.c_char_p, ct.c_char_p, ct.c_char_p, ct.c_int32]
+        self.daisybase.DYB_init.restype               = ct.c_int32
         self.daisybase.DYB_run.argtypes               = None
         self.daisybase.DYB_run.restype                = None
         self.daisybase.DYB_stop.argtypes              = None
-        self.daisybase.DYB_stop.restype               = c_int32
-        self.daisybase.DYB_setParameterAsync.argtypes = [c_int32,c_int32,c_int32]
-        self.daisybase.DYB_setParameterAsync.restype  = c_int32
-        self.daisybase.DYB_getParameterSync.argtypes  = [c_int32,c_int32,POINTER(c_int32)]
-        self.daisybase.DYB_getParameterSync.restype   = c_int32
-        self.daisybase.DYB_sendProfile.argtypes       = [c_char_p]
-        self.daisybase.DYB_sendProfile.restype        = c_int32
+        self.daisybase.DYB_stop.restype               = ct.c_int32
+        self.daisybase.DYB_setParameterAsync.argtypes = [ct.c_int32, ct.c_int32, ct.c_int32]
+        self.daisybase.DYB_setParameterAsync.restype  = ct.c_int32
+        self.daisybase.DYB_getParameterSync.argtypes  = [ct.c_int32, ct.c_int32, ct.POINTER(ct.c_int32)]
+        self.daisybase.DYB_getParameterSync.restype   = ct.c_int32
+        self.daisybase.DYB_sendProfile.argtypes       = [ct.c_char_p]
+        self.daisybase.DYB_sendProfile.restype        = ct.c_int32
         # ... from daisydata.h
-        self.daisybase.DYB_configureChannel.argtypes  = [c_int32,c_int32,c_int32,c_int32,c_double]
-        self.daisybase.DYB_configureChannel.restype   = c_int32
-        self.daisybase.DYB_configureDataBuffering.argtypes = [c_int32,c_int32]
-        self.daisybase.DYB_configureDataBuffering.restype  = c_int32
-        self.daisybase.DYB_getFrameSize.argtypes      = [c_int32]
-        self.daisybase.DYB_getFrameSize.restype       = c_int32
-        self.daisybase.DYB_getDataBuffer.argtypes     = [c_int32,c_int32,POINTER(c_int32),
-                                                         POINTER(c_int32),POINTER(c_int32),
-                                                         POINTER(c_int32),POINTER(c_int32)]
-        self.daisybase.DYB_getDataBuffer.restype      = c_int32
-        self.daisybase.DYB_writeBuffer.argtypes       = [c_char_p,c_char_p,c_int32,c_int32,c_int32,
-                                                         POINTER(c_int32),POINTER(c_int32)]
-        self.daisybase.DYB_writeBuffer.restype        = c_int32
-        self.daisybase.DYB_waitForEvent.argtypes      = [c_int32,c_int32,c_int32]
-        self.daisybase.DYB_waitForEvent.restype       = c_int32
+        self.daisybase.DYB_configureChannel.argtypes  = [ct.c_int32,ct.c_int32,ct.c_int32,ct.c_int32,ct.c_double]
+        self.daisybase.DYB_configureChannel.restype   = ct.c_int32
+        self.daisybase.DYB_configureDataBuffering.argtypes = [ct.c_int32,ct.c_int32]
+        self.daisybase.DYB_configureDataBuffering.restype  = ct.c_int32
+        self.daisybase.DYB_getFrameSize.argtypes      = [ct.c_int32]
+        self.daisybase.DYB_getFrameSize.restype       = ct.c_int32
+        self.daisybase.DYB_getDataBuffer.argtypes     = [ct.c_int32,ct.c_int32,ct.POINTER(ct.c_int32),
+                                                         ct.POINTER(ct.c_int32),ct.POINTER(ct.c_int32),
+                                                         ct.POINTER(ct.c_int32),ct.POINTER(ct.c_int32)]
+        self.daisybase.DYB_getDataBuffer.restype      = ct.c_int32
+        self.daisybase.DYB_writeBuffer.argtypes       = [ct.c_char_p,ct.c_char_p,ct.c_int32,ct.c_int32,ct.c_int32,
+                                                         ct.POINTER(ct.c_int32),ct.POINTER(ct.c_int32)]
+        self.daisybase.DYB_writeBuffer.restype        = ct.c_int32
+        self.daisybase.DYB_waitForEvent.argtypes      = [ct.c_int32,ct.c_int32,ct.c_int32]
+        self.daisybase.DYB_waitForEvent.restype       = ct.c_int32
 
 # Wrapper functions --------------------------------------------------------------
 
@@ -71,9 +72,9 @@ class Asc500:
             raise Exception("Daisybase: call to {} returned: {}".format(environ,msgs[returnCode]))
 
     def init(self,dummy,ipath,shost,port):
-        cdummy = create_string_buffer(dummy.encode('utf-8'))    # Convert Python strings to C
-        cipath = create_string_buffer(ipath.encode('utf-8'))
-        cshost = create_string_buffer(shost.encode('utf-8'))
+        cdummy = ct.create_string_buffer(dummy.encode('utf-8'))    # Convert Python strings to C
+        cipath = ct.create_string_buffer(ipath.encode('utf-8'))
+        cshost = ct.create_string_buffer(shost.encode('utf-8'))
         rc = self.daisybase.DYB_init(cdummy,cipath,cshost,port) # initialize DLL
         self.perror( "DYB_init",rc);
         if (rc==0):
@@ -88,14 +89,14 @@ class Asc500:
         self.perror(message,rc);
 
     def getParameter(self,address,index):
-        val = c_int32(0)
-        rc = self.daisybase.DYB_getParameterSync(address,index,byref(val))
+        val = ct.c_int32(0)
+        rc = self.daisybase.DYB_getParameterSync(address,index,ct.byref(val))
         message = "DYB_getParameterSync({})".format(address);
         self.perror(message,rc);
         return val.value
 
     def sendProfile(self,pfile):
-        cfn = create_string_buffer(pfile.encode('utf-8'))       # Convert Python strings to C
+        cfn = ct.create_string_buffer(pfile.encode('utf-8'))       # Convert Python strings to C
         rc = self.daisybase.DYB_sendProfile(cfn)                # Send parameter set to device
         self.perror("DYB_sendProfile",rc);
 
@@ -113,8 +114,8 @@ class Asc500:
         return rc
 
     def writeBuffer(self,fileName,comment,bin,forward,index,size,data,meta):
-        cfn = create_string_buffer(fileName.encode('utf-8'))    # Convert Python strings to C
-        ccm = create_string_buffer(comment.encode('utf-8'))
+        cfn = ct.create_string_buffer(fileName.encode('utf-8'))    # Convert Python strings to C
+        ccm = ct.create_string_buffer(comment.encode('utf-8'))
         rc = self.daisybase.DYB_writeBuffer(cfn,ccm,bin,forward,index,size,data,meta)
         self.perror( "DYB_writeBuffer", rc );
 
@@ -139,7 +140,7 @@ DYB_EVT_CUSTOM  = 0x8000                                        # from daisydata
 # Translate Constants from asc500const ------------------------------------------
 
 def cc(symbol):
-    return int(asc500const.cc[symbol],0)                        # necessary to convert '0x10' to 16
+    return int(asc500_const.cc[symbol],0)                        # necessary to convert '0x10' to 16
 
 # Scanner Command ----------------------------------------------------------------
 # Starting the scanner is a little bit more complicated as it requires two commands
@@ -184,11 +185,11 @@ def getScannerXYPos():
 
 def pollDataFull():
     event   = 0                                                 # Returncode of waitForEvent
-    frameNo = c_int32( 0 )                                      # Return param of getDataBuffer
-    index   = c_int32( 0 )                                      # Return param of getDataBuffer
-    dSize   = c_int32( FRAMESIZE )                              # In- and output of getDataBuffer
-    frame   = (c_int32 * FRAMESIZE)()                           # Array to receive data
-    meta    = (c_int32 * 13)()                                  # Metadata, should be a struct...
+    frameNo = ct.c_int32( 0 )                                      # Return param of getDataBuffer
+    index   = ct.c_int32( 0 )                                      # Return param of getDataBuffer
+    dSize   = ct.c_int32( FRAMESIZE )                              # In- and output of getDataBuffer
+    frame   = (ct.c_int32 * FRAMESIZE)()                           # Array to receive data
+    meta    = (ct.c_int32 * 13)()                                  # Metadata, should be a struct...
 
     # Wait for full buffer on channel 0 and show progress
     while ( event == 0 ):
@@ -199,7 +200,7 @@ def pollDataFull():
     # Read and print data frame, forward and backward scan in separate files
     print( "Reading frame; bufSize=", dSize.value, ", frameSize=",
            asc500.getFrameSize( CHANNELNO ) );
-    asc500.getDataBuffer( CHANNELNO, 1, byref(frameNo), byref(index), byref(dSize), frame, meta );
+    asc500.getDataBuffer( CHANNELNO, 1, ct.byref(frameNo), ct.byref(index), ct.byref(dSize), frame, meta );
     if ( dSize.value > 0 ):
         asc500.writeBuffer( 'scan_fwd', 'ADC2', 0, 1, index, dSize, frame, meta )
         asc500.writeBuffer( 'scan_bwd', 'ADC2', 0, 0, index, dSize, frame, meta )
@@ -220,7 +221,7 @@ try:
     asc500.configureDataBuffering( 0, 1024 )                    # Size not relevant here but >0
     asc500.setParameter( cc('ID_SCAN_X_EQ_Y'),   0, 0 );        # Switch off annoying automatics ..
     asc500.setParameter( cc('ID_SCAN_GEOMODE'),  0, 0 );        # that are useful only for GUI users
-    asc500.setParameter( cc('ID_SCAN_PIXEL'),    0, PIXELSIZE ) # Adjust scanner parameters 
+    asc500.setParameter( cc('ID_SCAN_PIXEL'),    0, PIXELSIZE ) # Adjust scanner parameters
     asc500.setParameter( cc('ID_SCAN_COLUMNS'),  0, COLUMNS )
     asc500.setParameter( cc('ID_SCAN_LINES'),    0, LINES )
     asc500.setParameter( cc('ID_SCAN_OFFSET_X'), 0, 150 * PIXELSIZE )
