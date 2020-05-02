@@ -13,21 +13,26 @@ class ASC500Base:
     parameter set and get functions and server communication functionality.
     """
 
-    def ASC_errcheck(self, code, func, args):
+    def ASC_errcheck(self, ret_code, func, args):
         """
         Checks and interprets the return value of daisybase calls.
 
         Parameters
         ----------
-        code : int
+        ret_code : int
             Return value from the function
         func : function
             Function that is called
         args : list
             Parameters passed to the function
+
+        Returns
+        -------
+        str
+            String of the return code
         """
         # daisybase returns defined in "daisybase.h"
-        DYB_Rc = {
+        DYB_RC = {
             0 : "No error",
             1 : "Unknown / other error",
             2 : "Communication timeout",
@@ -41,11 +46,11 @@ class ASC500Base:
             10 : "Invalid format of profile file",
             11 : "Can't open specified file"}
 
-        if code != DYB_Rc[0]:
-            RuntimeError('Error: {:}'.format(DYB_Rc[code]) +
+        if ret_code != 0:
+            RuntimeError('Error: {:} '.format(DYB_RC[ret_code]) +
                          str(func.__name__) +
                          ' with parameters: ' + str(args))
-        return code
+        return DYB_RC[ret_code]
 
     def getConst(self, symbol):
         """

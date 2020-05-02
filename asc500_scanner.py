@@ -9,7 +9,7 @@ import time
 import ctypes as ct
 import os
 from enum import Enum
-import asc500_base
+from asc500_base import ASC500Base
 import numpy as np
 
 class ASC500ScannerXY(ASC500Base):
