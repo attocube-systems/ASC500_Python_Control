@@ -1,7 +1,6 @@
-import time
+
 import ctypes as ct
 import os
-from enum import Enum
 import asc500_const
 import numpy as np
 
@@ -68,23 +67,29 @@ class ASC500Base:
         """
         return int(asc500_const.cc.get(symbol), base=16)
 
-    def __init__(self, serverPath, portNr, dllPath):
+    def __init__(self, binPath, dllPath, portNr=-1):
         """
-        Initialises the class.
+        Initialises the class. Make sure to have a complete installation of
+        the Daisy software ready.
 
         Parameters
         ----------
-        serverPath : str
+        binPath : str
             The folder where daisysrv.exe is found.
+        dllPath : str
+            The folder where daisybase.dll is found.
         portNr : int
             Port number of the device.
         """
         dll_loc = dllPath + 'daisybase.dll'
         assert os.path.isfile(dll_loc)
-        assert os.path.isdir(serverPath)
+        assert os.path.isdir(binPath)
         API = ct.cdll.LoadLibrary(dll_loc)
-        self.serverPath = serverPath
-        self.portNr = portNr
+        self.binPath = binPath
+        if portNr == -1:
+            self.portNr = self.getConst('ASC500_PORT_NUMBER')
+        else:
+            self.portNr = portNr
 
         # Aliases for the functions from the dll. For handling return
         # values: '.errcheck' is an attribute from ctypes.
@@ -175,36 +180,43 @@ class ASC500Base:
         self._convPhys2Print = API.DYB_convPhys2Print
         self._convPhys2Print.errcheck = self.ASC_errcheck
 
-    def _getParameter(self, address, index=0, async_=False):
+    #%% Base functions
+
+    def startServer(self, unused='', host=0):
         """
-        A/Synchronous inquiry about a parameter.
-        The function sends an inquiry about a single parameter value to the
-        server and waits for the answer. This may take a few ms at most.
-        The function must not be called in the context of a data or event
-        callback.
+        Configures connection to daisybase and starts server.
 
         Parameters
         ----------
-        address : int
-            Identification of the parameter.
-        index : int
-            If defined for the parameter: subaddress, 0 otherwise.
-        async_ : bool
-            Enable for ASYNC call.
-
-        Returns
-        -------
-        data.value : int
-            The return of the SYNC call. In case of ASYNC, returns 0.
+        unused : str
+            Unused Parameter, left for backward compatibility only. Use NULL
+            or empty string.
+        host : str
+            Hostname or IP address in "dotted decimal" notation for the host
+            where the application server resides.
+            NULL or empty if the server should run locally.
         """
-        data = ct.c_int32(0)
-        if not async_:
-            self._getParameterSync(address, index, ct.byref(data))
-        else:
-            self._getParameterASync(address, index)
-        return data.value
+        self._init(unused.encode('utf-8'),
+                   self.binPath.encode('utf-8'),
+                   host.encode('utf-8'),
+                   self.portNr)
+        self._run()
 
-    def _setParameter(self, address, value, index=0, async_=False):
+    def stopServer(self):
+        """
+        Configures connection to daisybase and starts server.
+        """
+        self._stop()
+
+    def resetServer(self):
+        """
+        Performs a reset of the controller, shuts down the server and
+        terminates the event loop. This call is necessary to reboot the
+        controller. It takes a few seconds.
+        """
+        self._reset()
+
+    def _setParameter(self, address, value, index=0, sync=True):
         """
         Generic function that sends a single parameter value to the server and
         waits for the acknowledgement. The acknowledged value is returned.
@@ -218,8 +230,10 @@ class ASC500Base:
             Identification of the parameter.
         index : int
             If defined for the parameter: subaddress, 0 otherwise.
-        async_ : bool
-            Enable for ASYNC call. If enabled, you have to catch data via an
+        value : int
+            New value for parameter.
+        sync : bool
+            Enable for SYNC call. If disabled, you have to catch data via an
             event.
 
         Returns
@@ -227,13 +241,59 @@ class ASC500Base:
         ret.value : int
             The return of the SYNC call. In case of ASYNC, returns 0.
         """
-        value = ct.c_int32(int(value))
+        value = ct.c_int32(value)
         ret = ct.c_int32(0)
-        if not async_:
+        if sync:
             self._setParameterSync(address, index, value, ct.byref(ret))
         else:
             self._setParameterASync(address, index, value)
         return ret.value
+
+    def _getParameter(self, address, index=0, sync=True):
+        """
+        A/Synchronous inquiry about a parameter.
+        The function sends an inquiry about a single parameter value to the
+        server and waits for the answer. This may take a few ms at most.
+        The function must not be called in the context of a data or event
+        callback.
+
+        Parameters
+        ----------
+        address : int
+            Identification of the parameter.
+        index : int
+            If defined for the parameter: subaddress, 0 otherwise.
+        sync : bool
+            Enable for SYNC call.
+
+        Returns
+        -------
+        data.value : int
+            The return of the SYNC call. In case of ASYNC, returns 0.
+        """
+        data = ct.c_int32(0)
+        if sync:
+            self._getParameterSync(address, index, ct.byref(data))
+        else:
+            self._getParameterASync(address, index)
+        return data.value
+
+    def _sendProfile(self, pFile):
+        """
+        Sends a profile file to the server. The function may run several
+        seconds. Note that a whole lot of parameter change notifications may
+        be sent back during that time. It may be useful to deactivate the
+        event callback functions temporarily. The function must not be called
+        in the context of a data or event callback.
+
+        Parameters
+        ----------
+        pFile : str
+            Location and filename of ngp file.
+        """
+        pfile = ct.create_string_buffer(pFile.encode('utf-8'))
+        assert os.path.isfile(pfile)
+        self._sendProfile(pfile)
 
     def getOutputStatus(self):
         """
@@ -257,18 +317,115 @@ class ASC500Base:
         """
         self._setParameter(self.getConst('ID_OUTPUT_ACTIVATE'), enable)
 
-    def startServer(self):
-        """
-        Configures connection to daisybase and starts server.
-        """
-        binPath = self.serverPath.encode('utf-8')
-        assert os.path.isdir(binPath)
-        self._init(0, binPath, 0, self.portNr)
-        self._run()
+    #%% Data functions
 
-    def stopServer(self):
+    def _configChannel(self, chn, trig, src, avg, sampT):
         """
-        Configures connection to daisybase and starts server.
-        """
-        self._stop()
+        Configures what kind of data is sent on a specific data channel.
 
+        Parameters
+        ----------
+        chn : int
+            Number of the channel to be configured (0 ... 13).
+        trig : int
+            Trigger source for data output (one of CHANCONN_..).
+        src : TYPE
+            Data source for the channel (one of CHANADC_..).
+        avg : bool
+            If data should be averaged over the sample time.
+        sampT : int
+            Time per sample sent to PC. Has no effect unless the channel is
+            timer triggered. Unit: 2.5 us.
+        """
+        self._configureChannel(chn,
+                               trig,
+                               src,
+                               ct.c_bool(avg),
+                               sampT)
+
+    def _configDataBuffering(self, chn, size):
+        """
+        The function configures if data arriving from a specific data channel
+        are buffered and sets the default size of the buffer.
+        If the default size is set to 0, data are not buffered and data
+        callback functions of daisybase (_setDataCallback) can be used.
+        If it is set to a positive value, the data are buffered and can be
+        retreived with _getDataBuffer. The actual value of the size is relevant
+        only for data channels that are triggered by timer; in all other cases
+        the "native" buffer size is used.
+        If size is too small (< 128), timer triggered data will not be buffered
+        to avoid too mucht buffer-full events.
+        If buffering is enabled, no data callback function can be used for the
+        channel.
+
+        Parameters
+        ----------
+        chn : int
+            Number of the channel of interest (0 ... 13).
+        size : int
+            Buffer size in '32 bit items'.
+        """
+        self._configureDataBuffering(chn,
+                                     size)
+
+    def _getDataBuffer(self, chn, fullOnly, dataSize):
+        """
+        Retrieve Data Channel Buffer.
+
+        If a data channel is configured for buffering with
+        _configDataBuffering, the next buffer can be retrieved with this
+        function without using data callback functions.
+        Normally, only completely filled buffers are returned and an error
+        DYB_OutOfRange_OutOfRange is signalled when no full buffer is
+        available.
+        No data will be returned twice.
+        The user can change this behaviour by requesting also partially filled
+        buffers with the parameter fullOnly = 0.
+        The partially filled buffer may be returned multiple times
+        until it is full.
+        In the case of scanner triggered data, a frame is considered full when
+        the upmost OR the lowermost line has been scanned.
+        A data frame is available when it is complete until it is retrieved or
+        the next frame is complete. If it is not retrieved in time, the frame
+        number may "jump".
+
+        Parameters
+        ----------
+        chn : int
+            Number of the channel of interest (0..13).
+        fullOnly : bool
+            If only completely filled buffers are requested.
+        dataSize : int
+            Size of the data buffer provided by the user.
+            If insufficient, DYB_OutOfRange will be returned.
+
+        Returns
+        -------
+        frameN : int
+            Number of the frame. With fullOnly == False the same frame can
+            be returned repeatedly.
+        index : int
+            Output: Index of the first element in the buffer.
+        data : array (int)
+            Pointer to an array to store the data. The array
+            must be provided by the caller and its size must be
+            at least one frame size (_getFrameSize).
+        dataSize : int
+            Number of valid data (32-bit items) in the buffer.
+        meta : array (int32 * 13)
+            Pointer to a space to copy the meta data.
+            The space must be provided by the caller.
+        """
+        frameN = ct.c_int32(0)
+        index = ct.c_int32(0)
+        dSize = ct.c_int32(dataSize)
+        data = (ct.c_int32 * dataSize)()
+        meta = (ct.c_int32 * 13)()
+        self._getDataBuffer(chn,
+                            ct.c_bool(fullOnly),
+                            ct.byref(frameN),
+                            ct.byref(index),
+                            ct.byref(dSize),
+                            data,
+                            meta)
+        return frameN, index, data, dSize, meta

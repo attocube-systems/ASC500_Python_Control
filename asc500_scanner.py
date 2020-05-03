@@ -7,7 +7,6 @@ Created on Fri May  1 11:28:24 2020
 
 import time
 import ctypes as ct
-import os
 from enum import Enum
 from asc500_base import ASC500Base
 import numpy as np
