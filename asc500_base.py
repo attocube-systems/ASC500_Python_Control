@@ -368,6 +368,25 @@ class ASC500Base:
         self._configureDataBuffering(chn,
                                      size)
 
+    def _getFrameSize(self, chn):
+        """
+        The function returns the size of a complete data frame for the channel.
+        This is the buffer size required for a call to _getDataBuffer.
+        The size may vary when measurement parameters are changed.
+        It is not valid before the data acquisition has started!
+
+        Parameters
+        ----------
+        chn : int
+            Number of the channel of interest (0..13).
+
+        Returns
+        -------
+        int
+            Size of the complete data buffer.
+        """
+        return self._getFrameSize(chn)
+
     def _getDataBuffer(self, chn, fullOnly, dataSize):
         """
         Retrieve Data Channel Buffer.
@@ -429,3 +448,45 @@ class ASC500Base:
                             data,
                             meta)
         return frameN, index, data, dSize, meta
+
+    def _writeBufferToFile(self, fName, comm, binary, fwd, index, dataSize, data, meta):
+        """
+        Write Buffer to file.
+
+        Writes a buffer (as retrieved with _getDataBuffer) to a file of an
+        appropriate ASCII or binary format. The format is chosen automatically
+        according to the meta data.
+        Available formats are "bcrf" (binary) and "asc" (ascii) for scanner
+        triggered data and "csv" for all other data.
+        The formats are "Daisy compatible".
+
+        Parameters
+        ----------
+        fName: str
+            Name of the file to write, without extension (selected
+            automatically).
+        comm : str
+            Data or channel description for the file header. Can be left blank.
+        binary : bool
+            If the desired format is binary. Relevant only for scanner
+            triggered data, ignored otherwise.
+        fwd: bool
+            If the forward scan (in X direction) is to be written.
+            Relevant only for scanner triggered data, ignored otherwise.
+        index : int
+            Index of the first element in the buffer.
+        dataSize : int
+            Number of valid data (32-bit items) in the buffer.
+        data : array (pointer to c_int32)
+            The data buffer.
+        meta : array (pointer to c_int32)
+            Meta data belonging to the buffer.
+        """
+        self._writeBuffer(ct.create_string_buffer(fName.encode('utf-8')),
+                          ct.create_string_buffer(comm.encode('utf-8')),
+                          ct.c_bool(binary),
+                          ct.c_bool(fwd),
+                          index,
+                          dataSize,
+                          data,
+                          meta)
