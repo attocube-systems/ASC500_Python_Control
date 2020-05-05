@@ -110,7 +110,7 @@ static DYB_Rc pollDataNow(const int32_t channel_no, const int32_t buffersize)
 
     rc = DYB_getDataBuffer(channel_no,
                            1, /* Get data only when buffer is full. */
-                           nullptr /* Output: number of the frame, ignore. */,
+                           0 /* Output: number of the frame, ignore. */,
                            &index, /* Output: index of first element in buffer. */
                            &dataSize /* In/Output: number of valid data in buffer. */,
                            buffer, /* Allocated buffer. */
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
                 profile_path = bin_path + "\\afm.ngp";
     DYB_Rc ret = DYB_Ok;
     int32_t outActive = 0,
-            variant = 1,
+            variant = 10,
             buffer_size = 2048,
             channel_no = 0,
             columns = 100, /* Scanrange number of columns */
@@ -263,5 +263,8 @@ int main(int argc, char **argv)
         fprintf(stdout, "Outputs are not deactivated!\n");
 
     DYB_stop();
+
+    getchar();
+
     return ret;
 }
