@@ -29,7 +29,12 @@
 		<Unit filename="daisybase.h" />
 		<Unit filename="daisydata.h" />
 		<Unit filename="daisydecl.h" />
-		<Unit filename="example500_counter.cpp" />
+		<Unit filename="example500_counter.cpp">
+			<Option compile="0" />
+			<Option link="0" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="example500_counter_clean.cpp" />
 		<Unit filename="metadata.h" />
 		<Extensions>
 			<code_completion />
