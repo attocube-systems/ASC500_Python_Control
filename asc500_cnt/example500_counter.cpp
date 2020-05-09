@@ -161,7 +161,13 @@ static DYB_Rc pollDataPartial(const int32_t channel_no, const int32_t framesize)
 
         Sleep(200);
         /* Read as much data as available */
-        rc = DYB_getDataBuffer(channel_no, 0, &frameNo, &index, &dataSize, frame, &meta);
+        rc = DYB_getDataBuffer(channel_no,
+                               0,
+                               &frameNo,
+                               &index,
+                               &dataSize,
+                               frame,
+                               &meta);
         checkRc("DYB_getDataBuffer", rc, __LINE__);
         fprintf(stdout, "Data Read: loop %2d frame %d, index %d, size %d\n", loop, frameNo, index, dataSize);
 

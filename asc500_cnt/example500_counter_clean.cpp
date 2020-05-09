@@ -56,6 +56,7 @@ static DYB_Rc pollDataNow(const int32_t channel_no, const int32_t buffersize)
 {
     int32_t framesize = DYB_getFrameSize(channel_no),
             frameno = 0,
+            event = 0,
             index = 0;
     int32_t *buffer = new int32_t[buffersize],
             dataSize = buffersize;
@@ -69,9 +70,14 @@ static DYB_Rc pollDataNow(const int32_t channel_no, const int32_t buffersize)
             "Reading data; buffer size = %d, frame size = %d\n",
             dataSize, framesize);
 
+    /* Wait for full buffer and show progress */
+    while(event == 0 /* means timeout */ && rc == DYB_Ok)
+        event = DYB_waitForEvent(500, /* Timeout in ms */
+                                 DYB_EVT_DATA_00, /* Buffer full */
+                                 0 /* custom ID: ignore */);
 
     rc = DYB_getDataBuffer(channel_no,
-                           1, /* Get data only when buffer is full. */
+                           0, /* Get data only when buffer is full. */
                            &frameno, /* Output: number of the frame, ignore. */
                            &index, /* Output: index of first element in buffer. */
                            &dataSize, /* In/Output: number of valid data in buffer. */
@@ -100,12 +106,12 @@ static DYB_Rc pollDataNow(const int32_t channel_no, const int32_t buffersize)
 
 int main(int argc, char **argv)
 {
-
     std::string bin_path = "..\\Installer\\ASC500CL-V2.7.6";
     DYB_Rc ret = DYB_Ok;
-    int32_t buffer_size = 2048,
+    int32_t buffer_size = 256,
             channel_no = 0,
-            sampletime = 100; /* Scanner sample time in multiples of 2.5us */
+            exp_time = 1; /* Scanner sample time in multiples of 2.5us */
+    double sampletime = 1e-3;
 
     /* Initialize & start */
     ret = DYB_init(nullptr, bin_path.c_str(), nullptr, ASC500_PORT_NUMBER);
@@ -128,14 +134,14 @@ int main(int argc, char **argv)
     checkRc("DYB_configureDataBuffering", ret, __LINE__);
 
     /* Adjust parameters */
-    setParameter(ID_CNT_EXP_TIME, 0, sampletime);
+    setParameter(ID_CNT_EXP_TIME, 0, exp_time);
 
     ret = pollDataNow(channel_no, buffer_size);
 
     /* Stop it and exit. This time use wait for event instead of polling */
     int32_t outActive = 0;
     setParameter(ID_OUTPUT_ACTIVATE, 0, 0);
-    DYB_waitForEvent(1000, DYB_EVT_CUSTOM, ID_OUTPUT_STATUS);
+    DYB_waitForEvent(500, DYB_EVT_CUSTOM, ID_OUTPUT_STATUS);
     DYB_getParameterSync(ID_OUTPUT_STATUS, 0, &outActive);
     if(outActive)
         fprintf(stdout, "Outputs are not deactivated!\n");
