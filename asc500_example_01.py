@@ -5,11 +5,10 @@ Created on Sun May 10 13:04:04 2020
 @author: schaecl
 """
 
-import time
 import asc500_base as asc
 
-binPath = "Installer\\ASC500CL-V2.7.6"
-dllPath = "64bit_lib\\ASC500CL-LIB-WIN64-V2.7.6\\daisybase\\lib"
+binPath = "Installer\\ASC500CL-V2.7.6\\"
+dllPath = "64bit_lib\\ASC500CL-LIB-WIN64-V2.7.6\\daisybase\\lib\\"
 asc500 = asc.ASC500Base(binPath, dllPath)
 
 asc500.startServer()
@@ -22,21 +21,21 @@ chnNo = 0
 bufSize = 256
 expTime = 1 # Scanner sample time in multiples of 2.5 us
 
-asc500._configureChannel(chnNo,
-                         asc500.getConst('CHANCONN_PERMANENT'),
-                         asc500.getConst('CHANADC_COUNTER'),
-                         average,
-                         sampTime)
+asc500.configureChannel(chnNo,
+                        asc500.getConst('CHANCONN_PERMANENT'),
+                        asc500.getConst('CHANADC_COUNTER'),
+                        average,
+                        sampTime)
 
-asc500._configureDataBuffering(chnNo, bufSize)
+asc500.configureDataBuffering(chnNo, bufSize)
 
 asc500.setParameter(asc500.getConst('ID_CNT_EXP_TIME'),
                     expTime)
 
 out = \
-asc500._getDataBuffer(chnNo,
-                      0,
-                      bufSize)
+asc500.getDataBuffer(chnNo,
+                     0,
+                     bufSize)
 
 print("Frame number: ", out[0])
 print("Index       : ", out[1])

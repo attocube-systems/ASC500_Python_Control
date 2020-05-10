@@ -103,10 +103,15 @@ class ASC500Base:
         # Aliases for the functions from the dll. For handling return
         # values: '.errcheck' is an attribute from ctypes.
         # Taken from daisybase.h,v 1.13 2016/10/24 17:55:23
-        self._DataCallback = API.DYB_DataCallback
-        self._DataCallback.errcheck = self.ASC_errcheck
-        self._EventCallback = API.DYB_EventCallback
-        self._EventCallback.errcheck = self.ASC_errcheck
+
+        try:
+            self._DataCallback = API.DYB_DataCallback
+            self._DataCallback.errcheck = self.ASC_errcheck
+            self._EventCallback = API.DYB_EventCallback
+            self._EventCallback.errcheck = self.ASC_errcheck
+        except:
+            print("DYB_DataCallback or DYB_EventCallback not exported.")
+            pass
 
         self._init = API.DYB_init
         self._init.errcheck = self.ASC_errcheck
@@ -191,7 +196,7 @@ class ASC500Base:
 
     #%% Callback definitions
 
-    def _DataCallback(self, chn, length, idx, data, meta):
+    def DataCallback(self, chn, length, idx, data, meta):
         """
         Functions of this type can be registered as callback functions for
         data channels. They will be called by the event loop as soon as data
@@ -233,7 +238,7 @@ class ASC500Base:
                            data,
                            meta)
 
-    def _EventCallback(self, addr, idx, val):
+    def EventCallback(self, addr, idx, val):
         """
         Functions of this type can be registered as callback functions for
         events.
@@ -262,7 +267,7 @@ class ASC500Base:
                             idx,
                             val)
 
-    def _setDataCallback(self, chn, callbck):
+    def setDataCallback(self, chn, callbck):
         """
         Registers a callback function for a data channel. That function will be
         called when new data arrive on the channel. A callback function
@@ -286,7 +291,7 @@ class ASC500Base:
         self._setDataCallback(chn,
                               callbck)
 
-    def _setEventCallback(self, addr, eventbck):
+    def setEventCallback(self, addr, eventbck):
         """
         Registers a callback function for an event. That function will be
         called when the event is recognized.  A callback function registered
@@ -325,9 +330,11 @@ class ASC500Base:
             where the application server resides.
             NULL or empty if the server should run locally.
         """
+        if host != 0:
+            host = host.encode('utf-8')
         self._init(unused.encode('utf-8'),
                    self.binPath.encode('utf-8'),
-                   host.encode('utf-8'),
+                   host,
                    self.portNr)
         self._run()
 
@@ -407,7 +414,7 @@ class ASC500Base:
             self._getParameterASync(address, index)
         return data.value
 
-    def _sendProfile(self, pFile):
+    def sendProfile(self, pFile):
         """
         Sends a profile file to the server. The function may run several
         seconds. Note that a whole lot of parameter change notifications may
@@ -459,7 +466,7 @@ class ASC500Base:
 
     #%% Data functions
 
-    def _printReturnCode(self, retC):
+    def printReturnCode(self, retC):
         """
         Returns a descriptive text for a given daisybase return code.
 
@@ -476,7 +483,7 @@ class ASC500Base:
         out = self._printRc(retC)
         return out # @todo check if conversion needs to be performed
 
-    def _printUnitCode(self, unit):
+    def printUnitCode(self, unit):
         """
         Returns the unit as an ASCII string (no greek letters).
 
@@ -493,7 +500,7 @@ class ASC500Base:
         out = self._printUnit(unit)
         return out # @todo check if conversion needs to be performed
 
-    def _configureChannel(self, chn, trig, src, avg, sampT):
+    def configureChannel(self, chn, trig, src, avg, sampT):
         """
         Configures what kind of data is sent on a specific data channel.
 
@@ -517,7 +524,7 @@ class ASC500Base:
                                ct.c_bool(avg),
                                ct.c_double(sampT))
 
-    def _getChannelConfig(self, chn):
+    def getChannelConfig(self, chn):
         """
         Reads out the channel configuration as set by _configureChannel.
 
@@ -549,7 +556,7 @@ class ASC500Base:
                                ct.byref(sampT))
         return trig.value, src.value, avg.value, sampT.value
 
-    def _configureDataBuffering(self, chn, size):
+    def configureDataBuffering(self, chn, size):
         """
         The function configures if data arriving from a specific data channel
         are buffered and sets the default size of the buffer.
@@ -574,7 +581,7 @@ class ASC500Base:
         self._configureDataBuffering(chn,
                                      size)
 
-    def _getFrameSize(self, chn):
+    def getFrameSize(self, chn):
         """
         The function returns the size of a complete data frame for the channel.
         This is the buffer size required for a call to _getDataBuffer.
@@ -594,7 +601,7 @@ class ASC500Base:
         out = self._getFrameSize(chn)
         return out.value
 
-    def _getDataBuffer(self, chn, fullOnly, dataSize):
+    def getDataBuffer(self, chn, fullOnly, dataSize):
         """
         Retrieve Data Channel Buffer.
 
@@ -656,7 +663,7 @@ class ASC500Base:
                             meta)
         return frameN, index, data, dSize, meta
 
-    def _writeBufferToFile(self, fName, comm, binary, fwd, index, dataSize, data, meta):
+    def writeBufferToFile(self, fName, comm, binary, fwd, index, dataSize, data, meta):
         """
         Write Buffer to file.
 
@@ -698,7 +705,7 @@ class ASC500Base:
                           data,
                           meta)
 
-    def _waitForEvent(self, timeout, eventMask, customID):
+    def waitForEvent(self, timeout, eventMask, customID):
         """
         The function waits until one of the specified events occur or on
         timeout. Note that there is a danger of race conditions: the event may
@@ -727,7 +734,7 @@ class ASC500Base:
 
     #%% Meta data functions
 
-    def _getOrder(self, meta):
+    def getOrder(self, meta):
         """
         Extract Data Order.
 
@@ -746,7 +753,7 @@ class ASC500Base:
         out = self._getOrder(meta)
         return out
 
-    def _getPointsX(self, meta):
+    def getPointsX(self, meta):
         """
         Data Points in a line.
 
@@ -767,7 +774,7 @@ class ASC500Base:
                          ct.byref(pntsX))
         return pntsX.value
 
-    def _getPointsY(self, meta):
+    def getPointsY(self, meta):
         """
         Number of lines.
 
