@@ -32,6 +32,8 @@ asc500.configureDataBuffering(chnNo, bufSize)
 asc500.setParameter(asc500.getConst('ID_CNT_EXP_TIME'),
                     expTime)
 
+# @todo Add wait for full buffer event
+
 out = \
 asc500.getDataBuffer(chnNo,
                      0,
