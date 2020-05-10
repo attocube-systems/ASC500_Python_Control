@@ -110,7 +110,7 @@ int main(int argc, char **argv)
     DYB_Rc ret = DYB_Ok;
     int32_t buffer_size = 256,
             channel_no = 0,
-            exp_time = 1; /* Scanner sample time in multiples of 2.5us */
+            exp_time = 1; /* Scanner sample time in multiples of 2.5 us */
     double sampletime = 1e-3;
 
     /* Initialize & start */
@@ -118,6 +118,8 @@ int main(int argc, char **argv)
     checkRc("DYB_Init", ret, __LINE__);
     ret = DYB_run();
     checkRc("DYB_Run", ret, __LINE__);
+
+    setParameter(ID_DATA_EN, 0, 1);
 
     /* Configure data channel and source. */
     ret = DYB_configureChannel(channel_no,

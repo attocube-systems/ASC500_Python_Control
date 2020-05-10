@@ -180,6 +180,126 @@ class ASC500Base:
         self._convPhys2Print = API.DYB_convPhys2Print
         self._convPhys2Print.errcheck = self.ASC_errcheck
 
+    #%% Callback definitions
+
+    def _DataCallback(self, chn, length, idx, data, meta):
+        """
+        Functions of this type can be registered as callback functions for
+        data channels. They will be called by the event loop as soon as data
+        for the specified channel arrive. The data are always transferred in
+        32 bit items but the encoding depends on the product and the channel.
+        The meta data buffer contains information required to interpret the
+        data.
+
+        The index counts the data since the begin of the measurement, i.e. it
+        is incremented from call to call by length. It also counts data that
+        have been lost due to performance problems of the control PC. To avoid
+        overflow, the index is resetted from time to time in a way that doesn't
+        affect the calculation of the independent variables. When data stem
+        from a scan, every frame begins with a new data packet with an
+        index of 0.
+
+        The buffer that contains the data is static and will be overwritten in
+        the next call. It must not be free()'d or used by the application to
+        store data.
+
+        To use the data channels they must be enabled by using ID_DATA_EN
+
+        Parameters
+        ----------
+        chn : int
+            Data channel that has sent the data.
+        length : int
+            Length of the packet (number of int32 items).
+        idx : int
+            Number of the first item of the packet.
+        data : array (pointer to c_int32)
+            Pointer to the data buffer.
+        meta : array (pointer to c_int32)
+            Pointer to the corresponding meta data.
+        """
+        self._DataCallback(chn,
+                           length,
+                           idx,
+                           data,
+                           meta)
+
+    def _EventCallback(self, addr, idx, val):
+        """
+        Functions of this type can be registered as callback functions for
+        events.
+        They will be called by the event loop as soon as the specified
+        parameter arrives.
+
+        "Event" here means the notification about the change of a parameter
+        caused by the client itself, by another client, or autonomously by the
+        server. Also the event may be the answer to a parameter inquiry to the
+        server.
+
+        Note that changing one parameter by the client may in turn cause the
+        change of several others. Sometimes the events may be redundant, i.e.
+        the value of the parameter hasn't changed since the last call.
+
+        Parameters
+        ----------
+        addr : int
+            Address of the parameter that has been changed.
+        idx : int
+            If defined for the parameter: subaddress, 0 otherwise.
+        val : int
+            New value of the parameter.
+        """
+        self._EventCallback(addr,
+                            idx,
+                            val)
+
+    def _setDataCallback(self, chn, callbck):
+        """
+        Registers a callback function for a data channel. That function will be
+        called when new data arrive on the channel. A callback function
+        registered previously is unregistered.
+
+        The function is called in the context of a thread that serves the
+        event loop. If it is not processed fast enough, events or data may be
+        lost.
+
+        To use the data channels they must be enabled by using ID_DATA_EN.
+
+        Parameters
+        ----------
+        chn : int
+            Number of the data channel. Numbers begin with 0, the maximum is
+            product specific.
+        callbck : _DataCallback function
+            Callback function for that channel, use NULL to unregister a
+            function.
+        """
+        self._setDataCallback(chn,
+                              callbck)
+
+    def _setEventCallback(self, addr, eventbck):
+        """
+        Registers a callback function for an event. That function will be
+        called when the event is recognized.  A callback function registered
+        previously is unregistered.
+
+        The function is called in the context of a thread that serves the
+        event loop. If it is not processed fast enough, events or data may be
+        lost.
+
+        It is possible to register a "catchall" callback for all events not
+        explicitly handled by using the invalid address -1.
+
+        Parameters
+        ----------
+        addr : int
+            Identification of the parameter that is observed, -1 for catchall.
+        eventbck : _EventCallback function
+            Callback function for that event.
+        """
+        self._setEventCallback(addr,
+                               eventbck)
+
     #%% Base functions
 
     def startServer(self, unused='', host=0):
@@ -216,7 +336,7 @@ class ASC500Base:
         """
         self._reset()
 
-    def _setParameter(self, address, value, index=0, sync=True):
+    def _setParameter(self, address, val, index=0, sync=True):
         """
         Generic function that sends a single parameter value to the server and
         waits for the acknowledgement. The acknowledged value is returned.
@@ -230,7 +350,7 @@ class ASC500Base:
             Identification of the parameter.
         index : int
             If defined for the parameter: subaddress, 0 otherwise.
-        value : int
+        val : int
             New value for parameter.
         sync : bool
             Enable for SYNC call. If disabled, you have to catch data via an
@@ -241,12 +361,12 @@ class ASC500Base:
         ret.value : int
             The return of the SYNC call. In case of ASYNC, returns 0.
         """
-        value = ct.c_int32(value)
+        val = ct.c_int32(val)
         ret = ct.c_int32(0)
         if sync:
-            self._setParameterSync(address, index, value, ct.byref(ret))
+            self._setParameterSync(address, index, val, ct.byref(ret))
         else:
-            self._setParameterASync(address, index, value)
+            self._setParameterASync(address, index, val)
         return ret.value
 
     def _getParameter(self, address, index=0, sync=True):
@@ -319,7 +439,41 @@ class ASC500Base:
 
     #%% Data functions
 
-    def _configChannel(self, chn, trig, src, avg, sampT):
+    def _printReturnCode(self, retC):
+        """
+        Returns a descriptive text for a given daisybase return code.
+
+        Parameters
+        ----------
+        retC : int
+            Return code of a daisybase function.
+
+        Returns
+        -------
+        str
+            Error description.
+        """
+        out = self._printRc(retC)
+        return out # @todo check if conversion needs to be performed
+
+    def _printUnitCode(self, unit):
+        """
+        Returns the unit as an ASCII string (no greek letters).
+
+        Parameters
+        ----------
+        unit : int
+            Unit encoding from a DYB_Meta structure.
+
+        Returns
+        -------
+        str
+            Unit as ASCII string.
+        """
+        out = self._printUnit(unit)
+        return out # @todo check if conversion needs to be performed
+
+    def _configureChannel(self, chn, trig, src, avg, sampT):
         """
         Configures what kind of data is sent on a specific data channel.
 
@@ -333,15 +487,47 @@ class ASC500Base:
             Data source for the channel (one of CHANADC_..).
         avg : bool
             If data should be averaged over the sample time.
-        sampT : int
+        sampT : float
             Time per sample sent to PC. Has no effect unless the channel is
-            timer triggered. Unit: 2.5 us.
+            timer triggered. Unit: s.
         """
         self._configureChannel(chn,
                                trig,
                                src,
                                ct.c_bool(avg),
-                               sampT)
+                               ct.c_double(sampT))
+
+    def _getChannelConfig(self, chn):
+        """
+        Reads out the channel configuration as set by _configureChannel.
+
+        Parameters
+        ----------
+        chn : int
+            Number of the channel to be configured (0 ... 13).
+
+        Returns
+        -------
+        trig : int
+            Trigger source for data output (one of CHANCONN_..).
+        src : TYPE
+            Data source for the channel (one of CHANADC_..).
+        avg : bool
+            If data should be averaged over the sample time.
+        sampT : float
+            Time per sample sent to PC. Has no effect unless the channel is
+            timer triggered. Unit: s.
+        """
+        trig = ct.c_int32(0)
+        src = ct.c_int32(0)
+        avg = ct.c_bool(0)
+        sampT = ct.c_double(0)
+        self._getChannelConfig(chn,
+                               ct.byref(trig),
+                               ct.byref(src),
+                               ct.byref(avg),
+                               ct.byref(sampT))
+        return trig.value, src.value, avg.value, sampT.value
 
     def _configDataBuffering(self, chn, size):
         """
@@ -385,7 +571,8 @@ class ASC500Base:
         int
             Size of the complete data buffer.
         """
-        return self._getFrameSize(chn)
+        out = self._getFrameSize(chn)
+        return out.value
 
     def _getDataBuffer(self, chn, fullOnly, dataSize):
         """
@@ -490,3 +677,93 @@ class ASC500Base:
                           dataSize,
                           data,
                           meta)
+
+    def _waitForEvent(self, timeout, eventMask, customID):
+        """
+        The function waits until one of the specified events occur or on
+        timeout. Note that there is a danger of race conditions: the event may
+        have been occured before you begin waiting for it. The function can't
+        recognize this case.
+
+        Parameters
+        ----------
+        timeout : int
+            Wait timeout in ms.
+        eventMask : int
+            Events to wait for: bitfield that combines some of the EventTypes
+            "event types".
+        customID : int
+            Address of a parameter to wait for. Only relevant if the
+            corresponding eventMask flag is set.
+
+        Returns
+        -------
+        int
+            Event that actually woke up the function: bitfield of EventTypes
+            "event types".
+        """
+        out = self._waitForEvent(timeout, eventMask, customID)
+        return out.value
+
+    #%% Meta data functions
+
+    def _getOrder(self, meta):
+        """
+        Extract Data Order.
+
+        Extracts the data order from the meta data set.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+
+        Returns
+        -------
+        DYB_Order
+            Data Order.
+        """
+        out = self._getOrder(meta)
+        return out
+
+    def _getPointsX(self, meta):
+        """
+        Data Points in a line.
+
+        Extract the number of data points in a row if applicable.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+
+        Returns
+        -------
+        int
+            Number of points.
+        """
+        pntsX = ct.c_int32(0)
+        self._getPointsX(meta,
+                         ct.byref(pntsX))
+        return pntsX.value
+
+    def _getPointsY(self, meta):
+        """
+        Number of lines.
+
+        Extract the number of lines of a scan if applicable
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+
+        Returns
+        -------
+        int
+            Number of lines.
+        """
+        pntsY = ct.c_int32(0)
+        self._getPointsY(meta,
+                         ct.byref(pntsY))
+        return pntsY.value
