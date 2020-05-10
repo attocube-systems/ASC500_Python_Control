@@ -10,6 +10,15 @@ class ASC500Base:
     """
     Base class for ASC500, consisting of error handling, wrapping of the DBY
     parameter set and get functions and server communication functionality.
+
+    Parameters
+    ----------
+    binPath : str
+        The folder where daisysrv.exe is found.
+    dllPath : str
+        The folder where daisybase.dll is found.
+    portNr : int
+        Port number of the device.
     """
 
     def ASC_errcheck(self, ret_code, func, args):
@@ -336,7 +345,7 @@ class ASC500Base:
         """
         self._reset()
 
-    def _setParameter(self, address, val, index=0, sync=True):
+    def setParameter(self, address, val, index=0, sync=False):
         """
         Generic function that sends a single parameter value to the server and
         waits for the acknowledgement. The acknowledged value is returned.
@@ -369,7 +378,7 @@ class ASC500Base:
             self._setParameterASync(address, index, val)
         return ret.value
 
-    def _getParameter(self, address, index=0, sync=True):
+    def getParameter(self, address, index=0, sync=True):
         """
         A/Synchronous inquiry about a parameter.
         The function sends an inquiry about a single parameter value to the
@@ -424,7 +433,7 @@ class ASC500Base:
         list
             Output status of outputs.
         """
-        return self._getParameter(self.getConst('ID_OUTPUT_STATUS'))
+        return self.getParameter(self.getConst('ID_OUTPUT_STATUS'))
 
     def setOutputs(self, enable):
         """
@@ -435,7 +444,18 @@ class ASC500Base:
         enable : int
             0: disable, 1: enable.
         """
-        self._setParameter(self.getConst('ID_OUTPUT_ACTIVATE'), enable)
+        self.setParameter(self.getConst('ID_OUTPUT_ACTIVATE'), enable)
+
+    def setDataEnable(self, enable):
+        """
+        Activates or deactivates all data channels of the ASC500.
+
+        Parameters
+        ----------
+        enable : int
+            0: disable, 1: enable.
+        """
+        self.setParameter(self.getConst('ID_DATA_EN'), enable)
 
     #%% Data functions
 
@@ -529,7 +549,7 @@ class ASC500Base:
                                ct.byref(sampT))
         return trig.value, src.value, avg.value, sampT.value
 
-    def _configDataBuffering(self, chn, size):
+    def _configureDataBuffering(self, chn, size):
         """
         The function configures if data arriving from a specific data channel
         are buffered and sets the default size of the buffer.
@@ -579,7 +599,7 @@ class ASC500Base:
         Retrieve Data Channel Buffer.
 
         If a data channel is configured for buffering with
-        _configDataBuffering, the next buffer can be retrieved with this
+        _configureDataBuffering, the next buffer can be retrieved with this
         function without using data callback functions.
         Normally, only completely filled buffers are returned and an error
         DYB_OutOfRange_OutOfRange is signalled when no full buffer is
