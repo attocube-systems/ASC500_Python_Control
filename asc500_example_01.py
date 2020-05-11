@@ -32,7 +32,14 @@ asc500.configureDataBuffering(chnNo, bufSize)
 asc500.setParameter(asc500.getConst('ID_CNT_EXP_TIME'),
                     expTime)
 
-# @todo Add wait for full buffer event
+waitTime = 500
+
+while True:
+    ret = asc500.waitForEvent(waitTime,
+                              asc500.getConst('DYB_EVT_DATA_00'),
+                              0)
+    if ret != 0:
+        break
 
 out = \
 asc500.getDataBuffer(chnNo,
@@ -45,5 +52,4 @@ print("Data size   : ", out[3])
 print("Meta data   : ", out[4])
 print("Data        :\n", out[2])
 
-asc500._stop()
-
+asc500.stop()

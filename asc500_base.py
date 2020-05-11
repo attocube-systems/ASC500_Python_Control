@@ -2,7 +2,6 @@
 import ctypes as ct
 import os
 import asc500_const
-import numpy as np
 
 #%%
 
@@ -99,6 +98,8 @@ class ASC500Base:
             self.portNr = self.getConst('ASC500_PORT_NUMBER')
         else:
             self.portNr = portNr
+
+        # @todo Check if all functions return a error code.
 
         # Aliases for the functions from the dll. For handling return
         # values: '.errcheck' is an attribute from ctypes.
