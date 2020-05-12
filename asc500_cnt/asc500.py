@@ -154,10 +154,15 @@ def load(filename):
 # First, determining both the executable name and the module name, whether this
 # file was run as an executable or imported as a module: not straightforward.
 if __name__ == "__main__":
+
     executable_name = sys.argv[0]
     filename = os.path.basename(executable_name)
     module_name = filename[:-3]
-    input_file = module_name + ".h"
+
+    input_file = 'daisydata.h'
+
+    if input_file == None:
+        input_file = module_name + ".h"
 
 
 help = """Command line usage:

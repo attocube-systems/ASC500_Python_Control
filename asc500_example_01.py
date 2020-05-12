@@ -52,4 +52,4 @@ print("Data size   : ", out[3])
 print("Meta data   : ", out[4])
 print("Data        :\n", out[2])
 
-asc500.stop()
+asc500.stopServer()

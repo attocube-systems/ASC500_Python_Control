@@ -161,7 +161,7 @@ class ASC500Base:
         self._writeBuffer = API.DYB_writeBuffer
         self._writeBuffer.errcheck = self.ASC_errcheck
         self._waitForEvent = API.DYB_waitForEvent
-        self._waitForEvent.errcheck = self.ASC_errcheck
+        self._waitForEvent.restype = ct.c_int32
 
         # Aliases for the functions from the dll. For handling return
         # values: '.errcheck' is an attribute from ctypes.
@@ -731,7 +731,7 @@ class ASC500Base:
             "event types".
         """
         out = self._waitForEvent(timeout, eventMask, customID)
-        return out.value
+        return out
 
     #%% Meta data functions
 
