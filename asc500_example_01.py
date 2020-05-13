@@ -32,9 +32,12 @@ asc500.configureDataBuffering(chnNo, bufSize)
 asc500.setParameter(asc500.getConst('ID_CNT_EXP_TIME'),
                     expTime)
 
+#%% Poll data
+
 waitTime = 500
 
 while True:
+    # Wait until buffer is full
     ret = asc500.waitForEvent(waitTime,
                               asc500.getConst('DYB_EVT_DATA_00'),
                               0)
@@ -48,8 +51,8 @@ asc500.getDataBuffer(chnNo,
 
 print("Frame number: ", out[0])
 print("Index       : ", out[1])
-print("Data size   : ", out[3])
+print("Data size   : ", out[2])
 print("Meta data   : ", out[4])
-print("Data        :\n", out[2])
+print("Data        :\n", out[3])
 
 asc500.stopServer()

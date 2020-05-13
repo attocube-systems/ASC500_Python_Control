@@ -339,10 +339,25 @@ class ASC500Base:
                    self.portNr)
         self._run()
 
-    def stopServer(self):
+    def stopServer(self, waitTime=1000):
         """
-        Configures connection to daisybase and starts server.
+        Cleanly disconnects server.
+
+        Parameters
+        ----------
+        waitTime : int
+            Time to wait in ms for response from server to get an info about
+            the output status.
         """
+        self.setOutputs(0)
+        self._waitForEvent(waitTime,
+                           self.getConst('DYB_EVT_CUSTOM'),
+                           self.getConst('ID_OUTPUT_STATUS'))
+        outActive = \
+        self.getParameter(self.getConst('ID_OUTPUT_STATUS'),
+                          0)
+        if outActive:
+            print("Outputs are not deactivated!")
         self._stop()
 
     def resetServer(self):
@@ -511,7 +526,7 @@ class ASC500Base:
             Number of the channel to be configured (0 ... 13).
         trig : int
             Trigger source for data output (one of CHANCONN_..).
-        src : TYPE
+        src : int
             Data source for the channel (one of CHANADC_..).
         avg : bool
             If data should be averaged over the sample time.
@@ -519,9 +534,9 @@ class ASC500Base:
             Time per sample sent to PC. Has no effect unless the channel is
             timer triggered. Unit: s.
         """
-        self._configureChannel(chn,
-                               trig,
-                               src,
+        self._configureChannel(ct.c_int32(chn),
+                               ct.c_int32(trig),
+                               ct.c_int32(src),
                                ct.c_bool(avg),
                                ct.c_double(sampT))
 
@@ -592,7 +607,7 @@ class ASC500Base:
         Parameters
         ----------
         chn : int
-            Number of the channel of interest (0..13).
+            Number of the channel of interest (0...13).
 
         Returns
         -------
@@ -610,8 +625,7 @@ class ASC500Base:
         _configureDataBuffering, the next buffer can be retrieved with this
         function without using data callback functions.
         Normally, only completely filled buffers are returned and an error
-        DYB_OutOfRange_OutOfRange is signalled when no full buffer is
-        available.
+        DYB_OutOfRange is signalled when no full buffer is available.
         No data will be returned twice.
         The user can change this behaviour by requesting also partially filled
         buffers with the parameter fullOnly = 0.
@@ -626,7 +640,7 @@ class ASC500Base:
         Parameters
         ----------
         chn : int
-            Number of the channel of interest (0..13).
+            Number of the channel of interest (0...13).
         fullOnly : bool
             If only completely filled buffers are requested.
         dataSize : int
@@ -640,12 +654,12 @@ class ASC500Base:
             be returned repeatedly.
         index : int
             Output: Index of the first element in the buffer.
-        data : array (int)
+        dataSize : int
+            Number of valid data (32-bit items) in the buffer.
+        data : array (int32)
             Pointer to an array to store the data. The array
             must be provided by the caller and its size must be
             at least one frame size (_getFrameSize).
-        dataSize : int
-            Number of valid data (32-bit items) in the buffer.
         meta : array (int32 * 13)
             Pointer to a space to copy the meta data.
             The space must be provided by the caller.
@@ -655,14 +669,14 @@ class ASC500Base:
         dSize = ct.c_int32(dataSize)
         data = (ct.c_int32 * dataSize)()
         meta = (ct.c_int32 * 13)()
-        self._getDataBuffer(chn,
+        self._getDataBuffer(ct.c_int32(chn),
                             ct.c_bool(fullOnly),
                             ct.byref(frameN),
                             ct.byref(index),
                             ct.byref(dSize),
                             data,
                             meta)
-        return frameN, index, data, dSize, meta
+        return frameN, index, dSize, data, meta
 
     def writeBufferToFile(self, fName, comm, binary, fwd, index, dataSize, data, meta):
         """
