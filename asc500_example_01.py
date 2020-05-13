@@ -6,6 +6,8 @@ Created on Sun May 10 13:04:04 2020
 """
 
 import asc500_base as asc
+import numpy as np
+from matplotlib import pyplot as plt
 
 binPath = "Installer\\ASC500CL-V2.7.6\\"
 dllPath = "64bit_lib\\ASC500CL-LIB-WIN64-V2.7.6\\daisybase\\lib\\"
@@ -52,10 +54,24 @@ asc500.getDataBuffer(chnNo,
                      0,
                      bufSize)
 
+#%% Close ASC500
+
+asc500.stopServer()
+
+#%% Check data
+
 print("Frame number: ", out[0])
 print("Index       : ", out[1])
 print("Data size   : ", out[2])
 print("Meta data   : ", out[4])
-print("Data        :\n", out[3])
+counts = np.asarray(out[3][:])
+print("Data        :\n", counts)
 
-asc500.stopServer()
+#%% Plot counts
+
+plt.figure(0)
+
+plt.scatter((np.arange(bufSize) + 1) * 2.5e-6 * expTime * 1e3,
+            counts)
+plt.xlabel('Time / ms')
+plt.ylabel('Counts / 1')
