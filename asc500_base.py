@@ -73,7 +73,7 @@ class ASC500Base:
         int
             Integer of constant.
         """
-        return int(asc500_const.cc.get(symbol), base=16)
+        return int(asc500_const.cc.get(symbol), base=0)
 
     def __init__(self, binPath, dllPath, portNr=-1):
         """
@@ -317,7 +317,7 @@ class ASC500Base:
 
     #%% Base functions
 
-    def startServer(self, unused='', host=0):
+    def startServer(self, unused=0, host=0):
         """
         Configures connection to daisybase and starts server.
 
@@ -333,11 +333,15 @@ class ASC500Base:
         """
         if host != 0:
             host = host.encode('utf-8')
-        self._init(unused.encode('utf-8'),
-                   self.binPath.encode('utf-8'),
-                   host,
+        if unused != 0:
+            unused = unused.encode('utf-8')
+        b_binPath = self.binPath.encode('utf-8')
+        self._init(ct.c_char_p(unused),
+                   ct.c_char_p(b_binPath),
+                   ct.c_char_p(host),
                    self.portNr)
         self._run()
+
 
     def stopServer(self, waitTime=1000):
         """
@@ -552,9 +556,9 @@ class ASC500Base:
         Returns
         -------
         trig : int
-            Trigger source for data output (one of CHANCONN_..).
-        src : TYPE
-            Data source for the channel (one of CHANADC_..).
+            Trigger source for data output (one of CHANCONN_...).
+        src : int
+            Data source for the channel (one of CHANADC_...).
         avg : bool
             If data should be averaged over the sample time.
         sampT : float
@@ -607,7 +611,7 @@ class ASC500Base:
         Parameters
         ----------
         chn : int
-            Number of the channel of interest (0...13).
+            Number of the channel of interest (0 ... 13).
 
         Returns
         -------
@@ -640,7 +644,7 @@ class ASC500Base:
         Parameters
         ----------
         chn : int
-            Number of the channel of interest (0...13).
+            Number of the channel of interest (0 ... 13).
         fullOnly : bool
             If only completely filled buffers are requested.
         dataSize : int

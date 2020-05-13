@@ -71,7 +71,7 @@ static DYB_Rc pollDataNow(const int32_t channel_no, const int32_t buffersize)
             dataSize, framesize);
 
     /* Wait for full buffer and show progress */
-    while(event == 0 /* means timeout */ && rc == DYB_Ok)
+    while(event == 0 /* means timeout */)
         event = DYB_waitForEvent(500, /* Timeout in ms */
                                  DYB_EVT_DATA_00, /* Buffer full */
                                  0 /* custom ID: ignore */);

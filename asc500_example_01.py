@@ -27,6 +27,8 @@ asc500.configureChannel(chnNo,
                         average,
                         sampTime)
 
+print(asc500.getChannelConfig(chnNo))
+
 asc500.configureDataBuffering(chnNo, bufSize)
 
 asc500.setParameter(asc500.getConst('ID_CNT_EXP_TIME'),
@@ -41,6 +43,7 @@ while True:
     ret = asc500.waitForEvent(waitTime,
                               asc500.getConst('DYB_EVT_DATA_00'),
                               0)
+    print("Return value of waitForEvent {:}".format(ret))
     if ret != 0:
         break
 

@@ -2,24 +2,19 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="Debug" />
-	<File name="asc500.h" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1963" topLine="52" />
-		</Cursor>
-	</File>
-	<File name="daisybase.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="14483" topLine="316" />
-		</Cursor>
-	</File>
-	<File name="daisydata.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4001" topLine="82" />
-		</Cursor>
-	</File>
 	<File name="daisydecl.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="1653" topLine="18" />
+		</Cursor>
+	</File>
+	<File name="example500_counter_clean.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1853" topLine="62" />
+		</Cursor>
+	</File>
+	<File name="asc500.h" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6251" topLine="110" />
 		</Cursor>
 	</File>
 	<File name="example500_counter.cpp" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -27,9 +22,14 @@
 			<Cursor1 position="3023" topLine="100" />
 		</Cursor>
 	</File>
-	<File name="example500_counter_clean.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
+	<File name="daisybase.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2767" topLine="84" />
+			<Cursor1 position="7164" topLine="126" />
+		</Cursor>
+	</File>
+	<File name="daisydata.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1264" topLine="26" />
 		</Cursor>
 	</File>
 	<File name="metadata.h" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
