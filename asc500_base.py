@@ -99,6 +99,9 @@ class ASC500Base:
         else:
             self.portNr = portNr
 
+        # Minimum exposure time of counter
+        self.minExpTime = 2.5e-6
+
         # @todo Check if all functions return a error code. If not, replace
         # by restype where applicable.
 
@@ -833,17 +836,16 @@ class ASC500Base:
         float
             The set exposure time in seconds.
         """
-        minExpTime = 2.5e-6
-        maxExpTime = minExpTime * 2**16
-        if expTime < minExpTime:
-            expTime = minExpTime
+        maxExpTime = self.minExpTime * 2**16
+        if expTime < self.minExpTime:
+            expTime = self.minExpTime
         elif expTime > maxExpTime:
             expTime = maxExpTime
 
-        expTimeInt = int(expTime / minExpTime) - 1
+        expTimeInt = int(expTime / self.minExpTime) - 1
         self.setParameter(self.getConst('ID_CNT_EXP_TIME'),
                           expTimeInt)
-        return (expTimeInt + 1) * minExpTime
+        return (expTimeInt + 1) * self.minExpTime
 
     def getCounterExposureTime(self):
         """
@@ -855,7 +857,7 @@ class ASC500Base:
             The set exposure time in seconds.
         """
         ret = self.getParameter(self.getConst('ID_CNT_EXP_TIME'))
-        return (ret + 1) * 2.5e-6
+        return (ret + 1) * self.minExpTime
 
     def waitForFullBuffer(self, chnNo, waitTime=500):
         """
