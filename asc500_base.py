@@ -54,9 +54,9 @@ class ASC500Base:
             11 : "Can't open specified file"}
 
         if ret_code != 0:
-            RuntimeError('Error: {:} '.format(DYB_RC[ret_code]) +
-                         str(func.__name__) +
-                         ' with parameters: ' + str(args))
+            raise RuntimeError('Error: {:} '.format(DYB_RC[ret_code]) +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
         return DYB_RC[ret_code]
 
     def getConst(self, symbol):
@@ -99,7 +99,8 @@ class ASC500Base:
         else:
             self.portNr = portNr
 
-        # @todo Check if all functions return a error code.
+        # @todo Check if all functions return a error code. If not, replace
+        # by restype where applicable.
 
         # Aliases for the functions from the dll. For handling return
         # values: '.errcheck' is an attribute from ctypes.
