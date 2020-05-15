@@ -18,11 +18,11 @@ asc500.startServer()
 
 asc500.setDataEnable(1)
 
-sampTime = 1e-3
+sampTime = .5
 average = 0
 chnNo = 0
 bufSize = 256
-expTime = 2.5 # Counter exposure time in us
+expTime = 1e-6 # Counter exposure time in us
 
 asc500.configureChannel(chnNo,
                         asc500.getConst('CHANCONN_PERMANENT'),
@@ -35,6 +35,7 @@ print(asc500.getChannelConfig(chnNo))
 asc500.configureDataBuffering(chnNo, bufSize)
 
 asc500.setCounterExposureTime(expTime)
+print("Exposure time ", asc500.getCounterExposureTime())
 
 #%% Poll data
 

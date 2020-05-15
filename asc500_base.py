@@ -817,7 +817,7 @@ class ASC500Base:
 
     #%% Additional base functions built-upon dll calls
 
-    def setCounterExposureTime(self, expTime=2.5):
+    def setCounterExposureTime(self, expTime=2.5e-6):
         """
         Sets exposure time of the counter unit.
         The exposure time can be set between 2.5 us to
@@ -826,22 +826,36 @@ class ASC500Base:
         Parameters
         ----------
         expTime : float
-            Exposure time in microseconds.
+            Exposure time in seconds.
 
         Returns
         -------
         float
-            The set exposure time in microseconds.
+            The set exposure time in seconds.
         """
-        if expTime < 2.5:
-            expTime = 2.5
-        elif expTime > 2.5 * 2**16:
-            expTime = 2.5 * 2**16
+        minExpTime = 2.5e-6
+        maxExpTime = minExpTime * 2**16
+        if expTime < minExpTime:
+            expTime = minExpTime
+        elif expTime > maxExpTime:
+            expTime = maxExpTime
 
-        expTimeInt = int(expTime / 2.5) - 1
+        expTimeInt = int(expTime / minExpTime) - 1
         self.setParameter(self.getConst('ID_CNT_EXP_TIME'),
                           expTimeInt)
-        return (expTimeInt + 1) * 2.5
+        return (expTimeInt + 1) * minExpTime
+
+    def getCounterExposureTime(self):
+        """
+        Gets exposure time of the counter unit.
+
+        Returns
+        -------
+        float
+            The set exposure time in seconds.
+        """
+        ret = self.getParameter(self.getConst('ID_CNT_EXP_TIME'))
+        return (ret + 1) * 2.5e-6
 
     def waitForFullBuffer(self, chnNo, waitTime=500):
         """
