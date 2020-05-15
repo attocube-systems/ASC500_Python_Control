@@ -813,3 +813,56 @@ class ASC500Base:
         self._getPointsY(meta,
                          ct.byref(pntsY))
         return pntsY.value
+
+    #%% Additional base functions built-upon dll calls
+
+    def setCounterExposureTime(self, expTime=2.5):
+        """
+        Sets exposure time of the counter unit.
+        The exposure time can be set between 2.5 us to
+        2**16 * 2.5 us = 163.84 ms.
+
+        Parameters
+        ----------
+        expTime : float
+            Exposure time in microseconds.
+
+        Returns
+        -------
+        float
+            The set exposure time in microseconds.
+        """
+        if expTime < 2.5:
+            expTime = 2.5
+        elif expTime > 2.5 * 2**16:
+            expTime = 2.5 * 2**16
+
+        expTimeInt = int(expTime / 2.5) - 1
+        self.setParameter(self.getConst('ID_CNT_EXP_TIME'),
+                          expTimeInt)
+        return (expTimeInt + 1) * 2.5
+
+    def waitForFullBuffer(self, chnNo, waitTime=500):
+        """
+        Wait until a channel buffer is full.
+
+        Parameters
+        ----------
+        chnNo : TYPE
+            Channel number (0 ... 13).
+        waitTime : int, optional
+            The waiting time in ms. The default is 500.
+
+        Returns
+        -------
+        int
+            Event that actually woke up the function: bitfield of EventTypes
+            "event types".
+        """
+        chnConst = 'DYB_EVT_DATA_{:02d}'.format(chnNo)
+        chnCode = self.getConst(chnConst)
+        ret = \
+        self.waitForEvent(waitTime,
+                          chnCode,
+                          0)
+        return ret

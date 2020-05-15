@@ -21,7 +21,7 @@ sampTime = 1e-3
 average = 0
 chnNo = 0
 bufSize = 256
-expTime = 1 # Scanner sample time in multiples of 2.5 us
+expTime = 2.5 # Counter exposure time in us
 
 asc500.configureChannel(chnNo,
                         asc500.getConst('CHANCONN_PERMANENT'),
@@ -33,8 +33,7 @@ print(asc500.getChannelConfig(chnNo))
 
 asc500.configureDataBuffering(chnNo, bufSize)
 
-asc500.setParameter(asc500.getConst('ID_CNT_EXP_TIME'),
-                    expTime)
+asc500.setCounterExposureTime(expTime)
 
 #%% Poll data
 
