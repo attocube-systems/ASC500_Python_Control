@@ -849,16 +849,16 @@ class ASC500Base:
 
         Parameters
         ----------
-        chnNo : TYPE
+        chnNo : int
             Channel number (0 ... 13).
         waitTime : int, optional
-            The waiting time in ms. The default is 500.
+            The waiting time in ms for the call to return. The default is 500.
 
         Returns
         -------
         int
             Event that actually woke up the function: bitfield of EventTypes
-            "event types".
+            "event types". Returns 0
         """
         chnConst = 'DYB_EVT_DATA_{:02d}'.format(chnNo)
         chnCode = self.getConst(chnConst)

@@ -5,12 +5,13 @@ Created on Sun May 10 13:04:04 2020
 @author: schaecl
 """
 
-import asc500_base as asc
 import numpy as np
 from matplotlib import pyplot as plt
+import asc500_base as asc
 
 binPath = "Installer\\ASC500CL-V2.7.6\\"
 dllPath = "64bit_lib\\ASC500CL-LIB-WIN64-V2.7.6\\daisybase\\lib\\"
+
 asc500 = asc.ASC500Base(binPath, dllPath)
 
 asc500.startServer()
@@ -37,15 +38,9 @@ asc500.setCounterExposureTime(expTime)
 
 #%% Poll data
 
-waitTime = 500
-
 while True:
     # Wait until buffer is full
-    ret = asc500.waitForEvent(waitTime,
-                              asc500.getConst('DYB_EVT_DATA_00'),
-                              0)
-    print("Return value of waitForEvent {:}".format(ret))
-    if ret != 0:
+    if asc500.waitForFullBuffer(chnNo) != 0:
         break
 
 out = \
