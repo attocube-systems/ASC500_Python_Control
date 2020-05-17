@@ -59,6 +59,36 @@ class ASC500Base:
                                ' with parameters: ' + str(args))
         return DYB_RC[ret_code]
 
+    def ASC_metaErrcheck(self, ret_code, func, args):
+        """
+        Checks and interprets the return value of daisymeta calls.
+
+        Parameters
+        ----------
+        ret_code : int
+            Return value from the function.
+        func : function
+            Function that is called.
+        args : list
+            Parameters passed to the function.
+
+        Returns
+        -------
+        str
+            String of the return code.
+        """
+        # daisybase returns defined in "daisymeta.h"
+        DYB_RC = {
+            0 : "Function call was successful",
+            1 : "Function not applicable for current data order",
+            2 :  "Meta data set is invalid"}
+
+        if ret_code != 0:
+            raise RuntimeError('Error: {:} '.format(DYB_RC[ret_code]) +
+                               str(func.__name__) +
+                               ' with parameters: ' + str(args))
+        return DYB_RC[ret_code]
+
     def getConst(self, symbol):
         """
         Gets string and returns constant defined in ASC500 headers.
@@ -149,9 +179,9 @@ class ASC500Base:
         # values: '.errcheck' is an attribute from ctypes.
         # Taken from daisydata.h,v 1.4 2016/12/01 18:02:32
         self._printRc = API.DYB_printRc
-        self._printRc.errcheck = self.ASC_errcheck
+        self._printRc.restype = ct.c_char_p
         self._printUnit = API.DYB_printUnit
-        self._printUnit.errcheck = self.ASC_errcheck
+        self._printUnit.restype = ct.c_char_p
         self._configureChannel = API.DYB_configureChannel
         self._configureChannel.errcheck = self.ASC_errcheck
         self._getChannelConfig = API.DYB_getChannelConfig
@@ -159,7 +189,7 @@ class ASC500Base:
         self._configureDataBuffering = API.DYB_configureDataBuffering
         self._configureDataBuffering.errcheck = self.ASC_errcheck
         self._getFrameSize = API.DYB_getFrameSize
-        self._getFrameSize.errcheck = self.ASC_errcheck
+        self._getFrameSize.restype = ct.c_int32
         self._getDataBuffer = API.DYB_getDataBuffer
         self._getDataBuffer.errcheck = self.ASC_errcheck
         self._writeBuffer = API.DYB_writeBuffer
@@ -171,33 +201,33 @@ class ASC500Base:
         # values: '.errcheck' is an attribute from ctypes.
         # Taken from metadata.h,v 1.12.8.1 2018/10/11 08:50:55
         self._getOrder = API.DYB_getOrder
-        self._getOrder.errcheck = self.ASC_errcheck
+        self._getOrder.errcheck = self.ASC_metaErrcheck
         self._getPointsX = API.DYB_getPointsX
-        self._getPointsX.errcheck = self.ASC_errcheck
+        self._getPointsX.errcheck = self.ASC_metaErrcheck
         self._getPointsY = API.DYB_getPointsY
-        self._getPointsY.errcheck = self.ASC_errcheck
+        self._getPointsY.errcheck = self.ASC_metaErrcheck
         self._getUnitXY= API.DYB_getUnitXY
-        self._getUnitXY.errcheck = self.ASC_errcheck
+        self._getUnitXY.errcheck = self.ASC_metaErrcheck
         self._getUnitVal = API.DYB_getUnitVal
-        self._getUnitVal.errcheck = self.ASC_errcheck
+        self._getUnitVal.errcheck = self.ASC_metaErrcheck
         self._getRotation = API.DYB_getRotation
-        self._getRotation.errcheck = self.ASC_errcheck
+        self._getRotation.errcheck = self.ASC_metaErrcheck
         self._getPhysRangeX = API.DYB_getPhysRangeX
-        self._getPhysRangeX.errcheck = self.ASC_errcheck
+        self._getPhysRangeX.errcheck = self.ASC_metaErrcheck
         self._getPhysRangeY = API.DYB_getPhysRangeY
-        self._getPhysRangeY.errcheck = self.ASC_errcheck
+        self._getPhysRangeY.errcheck = self.ASC_metaErrcheck
         self._convIndex2Pixel = API.DYB_convIndex2Pixel
-        self._convIndex2Pixel.errcheck = self.ASC_errcheck
+        self._convIndex2Pixel.errcheck = self.ASC_metaErrcheck
         self._convIndex2Direction = API.DYB_convIndex2Direction
-        self._convIndex2Direction.errcheck = self.ASC_errcheck
+        self._convIndex2Direction.errcheck = self.ASC_metaErrcheck
         self._convIndex2Phys1 = API.DYB_convIndex2Phys1
-        self._convIndex2Phys1.errcheck = self.ASC_errcheck
+        self._convIndex2Phys1.errcheck = self.ASC_metaErrcheck
         self._convIndex2Phys2 = API.DYB_convIndex2Phys2
-        self._convIndex2Phys2.errcheck = self.ASC_errcheck
+        self._convIndex2Phys2.errcheck = self.ASC_metaErrcheck
         self._convValue2Phys = API.DYB_convValue2Phys
-        self._convValue2Phys.errcheck = self.ASC_errcheck
+        self._convValue2Phys.restype = ct.c_double
         self._convPhys2Print = API.DYB_convPhys2Print
-        self._convPhys2Print.errcheck = self.ASC_errcheck
+        self._convPhys2Print.restype = ct.c_double
 
     #%% Callback definitions
 
@@ -824,7 +854,10 @@ class ASC500Base:
         """
         Sets exposure time of the counter unit.
         The exposure time can be set between 2.5 us to
-        2**16 * 2.5 us = 163.84 ms.
+        2**16 * 2.5 us = 163.84 ms. If the data channel is timer triggered,
+        setting an exposure time longer than the transfer rate (set in
+        setChannelConfig) is not meaningful. It makes sense to set both times
+        equal.
 
         Parameters
         ----------
