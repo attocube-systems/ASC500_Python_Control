@@ -20,6 +20,70 @@ class ASC500Base:
         Port number of the device.
     """
 
+    def ASC_units(self, unitCode):
+        """
+        Takes unit code from meta data and converts it into a string.
+
+        Parameters
+        ----------
+        unitCode : int
+            Code from meta data.
+
+        Returns
+        -------
+        str
+            Human readable string.
+        """
+        units = {
+            0x0080 : "No unit, invalid",
+            0x0180 : "Meter",
+            0x017F : "MilliMeter",
+            0x017E : "MicroMeter",
+            0x017D : "NanoMeter",
+            0x017C : "PicoMeter",
+            0x0280 : "Volt",
+            0x027F : "MilliVolt",
+            0x027E : "MicroVolt",
+            0x027D : "NanoVolt",
+            0x0382 : "MegaHertz",
+            0x0381 : "KiloHertz",
+            0x0380 : "Hertz",
+            0x037F : "MilliHertz",
+            0x0480 : "KiloSecond",
+            0x0480 : "Second",
+            0x047F : "MilliSecond",
+            0x047E : "MicroSecond",
+            0x047D : "NanoSecond",
+            0x047C : "PicoSecond",
+            0x0580 : "Ampere",
+            0x057F : "MilliAmpere",
+            0x057E : "MicroAmpere",
+            0x057D : "NanoAmpere",
+            0x0680 : "Watt",
+            0x067F : "MilliWatt",
+            0x067E : "MicroWatt",
+            0x067D : "NanoWatt",
+            0x0780 : "Tesla",
+            0x077F : "MilliTesla",
+            0x077E : "MicroTesla",
+            0x077D : "NanoTesla",
+            0x0880 : "Kelvin",
+            0x087F : "MilliKelvin",
+            0x087E : "MicroKelvin",
+            0x087D : "NanoKelvin",
+            0x0980 : "Angular Degree",
+            0x097F : "MilliDegree",
+            0x097E : "MicroDegree",
+            0x097E : "NanoDegree",
+            0x0A80 : "Cosine",
+            0x0B80 : "dB",
+            0x0C80 : "LSB"}
+
+        if unitCode in (0x0480, 0x097E):
+            print("Ambigious decoding")
+
+        return units[unitCode]
+
     def ASC_errcheck(self, ret_code, func, args):
         """
         Checks and interprets the return value of daisybase calls.
@@ -201,15 +265,15 @@ class ASC500Base:
         # values: '.errcheck' is an attribute from ctypes.
         # Taken from metadata.h,v 1.12.8.1 2018/10/11 08:50:55
         self._getOrder = API.DYB_getOrder
-        self._getOrder.errcheck = self.ASC_metaErrcheck
+        self._getOrder.restype = ct.c_int32
         self._getPointsX = API.DYB_getPointsX
         self._getPointsX.errcheck = self.ASC_metaErrcheck
         self._getPointsY = API.DYB_getPointsY
         self._getPointsY.errcheck = self.ASC_metaErrcheck
         self._getUnitXY= API.DYB_getUnitXY
-        self._getUnitXY.errcheck = self.ASC_metaErrcheck
+        self._getUnitXY.restype = ct.c_int32
         self._getUnitVal = API.DYB_getUnitVal
-        self._getUnitVal.errcheck = self.ASC_metaErrcheck
+        self._getUnitVal.restype = ct.c_int32
         self._getRotation = API.DYB_getRotation
         self._getRotation.errcheck = self.ASC_metaErrcheck
         self._getPhysRangeX = API.DYB_getPhysRangeX
@@ -537,7 +601,7 @@ class ASC500Base:
         out = self._printRc(retC)
         return out # @todo check if conversion needs to be performed
 
-    def printUnitCode(self, unit):
+    def printUnit(self, unit):
         """
         Returns the unit as an ASCII string (no greek letters).
 
@@ -653,7 +717,7 @@ class ASC500Base:
             Size of the complete data buffer.
         """
         out = self._getFrameSize(chn)
-        return out.value
+        return out
 
     def getDataBuffer(self, chn, fullOnly, dataSize):
         """
@@ -789,9 +853,26 @@ class ASC500Base:
 
     def getOrder(self, meta):
         """
-        Extract Data Order.
+        Extract data order from the meta data set.
 
-        Extracts the data order from the meta data set.
+        Ordering of the data, i.e. the kind of mapping of the data index to the
+        physical independent variable(s). The variable(s) may:
+
+            - be one (like time) or two (a scan),
+
+            - grow unlimited (like time) or may be cyclic (like a scan),
+
+            - have an absolutely defined origin (e.g. spectroscopy) or not
+            (like time, again)
+
+            - perform a scan beginning with a line in forward or backward
+            direction,
+
+            - have subsequent scan lines in the same direction only or
+            alternating between forward and backward.
+
+        The first frame of a scan always runs bottom to top, the Y direction
+        of subsequent frames alternate.
 
         Parameters
         ----------
@@ -800,11 +881,21 @@ class ASC500Base:
 
         Returns
         -------
-        DYB_Order
-            Data Order.
+        int, str
+            Data Order as code and string.
         """
+        order_RC = {
+            0 : "1 Variable, unlimited, no origin defined",
+            1 : "1 Variable, unlimited, absolute origin defined",
+            2 : "1 Variable, ranging from absolute origin to limit",
+            3 : "2 Variables, forward-forward scan, origin defined",
+            4 : "2 Variables, forward-backward scan, origin defined",
+            5 : "2 Variables, backward-backward scan, origin defined",
+            6 : "2 Variables, backward-forward scan, origin defined",
+            7 : "Invalid order"}
         out = self._getOrder(meta)
-        return out
+
+        return out, order_RC[out]
 
     def getPointsX(self, meta):
         """
@@ -831,7 +922,7 @@ class ASC500Base:
         """
         Number of lines.
 
-        Extract the number of lines of a scan if applicable
+        Extract the number of lines of a scan if applicable.
 
         Parameters
         ----------
@@ -847,6 +938,44 @@ class ASC500Base:
         self._getPointsY(meta,
                          ct.byref(pntsY))
         return pntsY.value
+
+    def getUnitXY(self, meta):
+        """
+        Unit of independent variable(s).
+
+        Returns the common unit of all independent variables.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+
+        Returns
+        -------
+        str
+            Name of the unit.
+        """
+        out = self._getUnitXY(meta)
+        return self.ASC_units(out)
+
+    def getUnitVal(self, meta):
+        """
+        Unit of dependent variable.
+
+        Returns the unit of the data.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+
+        Returns
+        -------
+        str
+            Name of the unit.
+        """
+        out = self._getUnitVal(meta)
+        return self.ASC_units(out)
 
     #%% Additional base functions built-upon dll calls
 
