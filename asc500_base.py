@@ -1104,6 +1104,121 @@ class ASC500Base:
                                   ct.byref(uwd))
         return fwd.value, uwd.value
 
+    def convIndex2Phys1(self, meta, idx):
+        """
+        Physical Position from Data Index for one variable.
+
+        Converts a data index to the physical coordinates of the data point
+        if one independent variable exists. If the data order is DYB_Linear,
+        the absolute value is meaningless but differences are valid.
+        The corresponding unit can be retreived by _getUnitXY.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+        idx : int
+            Data index.
+
+        Returns
+        -------
+        float
+            Independent variable.
+        """
+        xVar = ct.c_double(0.)
+        self._convIndex2Phys1(meta,
+                              idx,
+                              ct.byref(xVar))
+        return xVar.value
+
+    def convIndex2Phys2(self, meta, idx):
+        """
+        Physical Position from Data Index for two variables.
+
+        Converts a data index to the physical coordinates of the data point
+        if the data originate from a scan. The origin is bottom left.
+        The corresponding unit can be retreived by _getUnitXY.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+        idx : int
+            Data index.
+
+        Returns
+        -------
+        float
+            Horizontal position.
+        float
+            Vertical position.
+        """
+        xVar = ct.c_double(0.)
+        yVar = ct.c_double(0.)
+        self._convIndex2Phys2(meta,
+                              idx,
+                              ct.byref(xVar),
+                              ct.byref(yVar))
+        return xVar.value, yVar.value
+
+    def convValue2Phys(self, meta, val):
+        """
+        Convert data value.
+
+        Converts a raw data value to the physical value.
+        The unit can be retreived by _getUnitVal.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+        val : int
+            Raw data value.
+
+        Returns
+        -------
+        float
+            Physical value.
+        """
+        out = \
+        self._convValue2Phys(meta,
+                             val)
+        return out
+
+    def convPhys2Print(self, number, unit, unitStr):
+        """
+        Make up value for printing.
+
+        A physical value consisting of number and unit is rescaled for
+        comfortable reading. The unit is prefixed with a magnitude prefix
+        (like "k" or "n") so that the number ranges between 1 and 1000.
+
+        Prefix and unit are provided as a printable string.
+        If the unit is invalid, the number will be unchanged and the unit
+        string will be "?".
+
+        Parameters
+        ----------
+        number : float
+            Number belonging to the physical value.
+        unit : int
+            Unit belonging to the physical value.
+        unitStr : string
+            String buffer of at least 10 chars. On output it will contain the
+            prefixed unit after rescaling (encoded in Latin1).
+
+        Returns
+        -------
+        None.
+
+        """
+        # @todo Still to finish
+        out = \
+        self._convPhys2Print(number,
+                             unit,
+                             unitStr)
+        return unitStr, out
+
     #%% Additional base functions built-upon dll calls
 
     def setCounterExposureTime(self, expTime=2.5e-6):
