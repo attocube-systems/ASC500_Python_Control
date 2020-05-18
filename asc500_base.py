@@ -210,7 +210,6 @@ class ASC500Base:
             self._EventCallback.errcheck = self.ASC_errcheck
         except:
             print("DYB_DataCallback or DYB_EventCallback not exported.")
-            pass
 
         self._init = API.DYB_init
         self._init.errcheck = self.ASC_errcheck
@@ -270,7 +269,7 @@ class ASC500Base:
         self._getPointsX.errcheck = self.ASC_metaErrcheck
         self._getPointsY = API.DYB_getPointsY
         self._getPointsY.errcheck = self.ASC_metaErrcheck
-        self._getUnitXY= API.DYB_getUnitXY
+        self._getUnitXY = API.DYB_getUnitXY
         self._getUnitXY.restype = ct.c_int32
         self._getUnitVal = API.DYB_getUnitVal
         self._getUnitVal.restype = ct.c_int32
@@ -976,6 +975,134 @@ class ASC500Base:
         """
         out = self._getUnitVal(meta)
         return self.ASC_units(out)
+
+    def getRotation(self, meta):
+        """
+        Scan range rotation.
+
+        Returns the rotation angle of the scan area if the data originate from
+        a scan.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+
+        Returns
+        -------
+        float
+            Rotation angle in rad.
+        """
+        rotation = ct.c_double(0.)
+        self._getRotation(meta,
+                          ct.byref(rotation))
+        return rotation.value
+
+    def getPhysRangeX(self, meta):
+        """
+        Physical range X.
+
+        Returns the physical length of a line of data for cyclic data order.
+        The length is the distance between the first and the last point of the
+        line.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+
+        Returns
+        -------
+        float
+            Line length.
+        """
+        rangeX = ct.c_double(0.)
+        self._getPhysRangeX(meta,
+                            ct.byref(rangeX))
+        return rangeX.value
+
+    def getPhysRangeY(self, meta):
+        """
+        Physical range Y.
+
+        Returns the physical height of the scan area if applicable.
+        The height is the distance between the first and the last line of the
+        frame.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+
+        Returns
+        -------
+        float
+            Column height.
+        """
+        rangeY = ct.c_double(0.)
+        self._getPhysRangeY(meta,
+                            ct.byref(rangeY))
+        return rangeY.value
+
+    def convIndex2Pixel(self, meta, idx):
+        """
+        Pixel position from data index.
+
+        Converts a data index to the pixel position (i.e. column and line
+        number) if the data originate from a scan. The coordinate origin is
+        bottom left.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+        idx : int
+            Data index.
+
+        Returns
+        -------
+        int
+            Horizontal pixel position (column number).
+        int
+            Vertical pixel position (line number).
+        """
+        col = ct.c_int32(0)
+        lin = ct.c_int32(0)
+        self._convIndex2Pixel(meta,
+                              idx,
+                              ct.byref(col),
+                              ct.byref(lin))
+        return col.value, lin.value
+
+    def convIndex2Direction(self, meta, idx):
+        """
+        Scan direction from data index.
+
+        Calculates the current scan direction corresponding to a particular
+        index.
+        The direction is seen from the coordinate origin which is bottom left.
+
+        Parameters
+        ----------
+        meta : array (pointer to c_int32)
+            Meta data set.
+        idx : int
+            Data index.
+
+        Returns
+        -------
+        int
+            If the current scan direction is forward.
+        int
+            If the current scan direction is upward.
+        """
+        fwd = ct.c_int32(0)
+        uwd = ct.c_int32(0)
+        self._convIndex2Direction(meta,
+                                  idx,
+                                  ct.byref(fwd),
+                                  ct.byref(uwd))
+        return fwd.value, uwd.value
 
     #%% Additional base functions built-upon dll calls
 
