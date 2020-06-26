@@ -49,7 +49,7 @@ class ASC500Base:
             0x0381 : "KiloHertz",
             0x0380 : "Hertz",
             0x037F : "MilliHertz",
-            0x0480 : "KiloSecond",
+            0x037E : "KiloSecond",
             0x0480 : "Second",
             0x047F : "MilliSecond",
             0x047E : "MicroSecond",
@@ -74,7 +74,7 @@ class ASC500Base:
             0x0980 : "Angular Degree",
             0x097F : "MilliDegree",
             0x097E : "MicroDegree",
-            0x097E : "NanoDegree",
+            0x097D : "NanoDegree",
             0x0A80 : "Cosine",
             0x0B80 : "dB",
             0x0C80 : "LSB"}
@@ -195,9 +195,6 @@ class ASC500Base:
 
         # Minimum exposure time of counter
         self.minExpTime = 2.5e-6
-
-        # @todo Check if all functions return a error code. If not, replace
-        # by restype where applicable.
 
         # Aliases for the functions from the dll. For handling return
         # values: '.errcheck' is an attribute from ctypes.
@@ -1203,21 +1200,24 @@ class ASC500Base:
             Number belonging to the physical value.
         unit : int
             Unit belonging to the physical value.
-        unitStr : string
-            String buffer of at least 10 chars. On output it will contain the
-            prefixed unit after rescaling (encoded in Latin1).
+        unitStr : str
+            String buffer of at least 10 chars.
 
         Returns
         -------
-        None.
+        str
+            On output it will contain the prefixed unit after rescaling
+            (encoded in Latin1).
+        float
+            Number after rescaling.
 
         """
-        # @todo Still to finish
+        unitstr = ct.create_string_buffer(unitStr.encode('utf-8'))
         out = \
         self._convPhys2Print(number,
                              unit,
-                             unitStr)
-        return unitStr, out
+                             unitstr)
+        return unitstr, out
 
     #%% Additional base functions built-upon dll calls
 
