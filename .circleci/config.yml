@@ -1,7 +1,7 @@
 version: 2.1
 jobs:
   pack-asc:
-    docker: 
+    docker:
      - image: alpine:latest
     steps:
       - checkout
@@ -9,7 +9,7 @@ jobs:
           command: |
               apk update && apk add zip ca-certificates
               mkdir -p build
-              zip asc500_base.py asc500_const.py asc500_example_01.py
+              zip asc500.zip asc500_base.py asc500_const.py asc500_example_01.py
               mv *.zip build
       - persist_to_workspace:
           root: .
