@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  pack-amc:
+  pack-asc:
     docker: 
      - image: alpine:latest
     steps:
@@ -9,22 +9,7 @@ jobs:
           command: |
               apk update && apk add zip ca-certificates
               mkdir -p build
-              zip AMC_python_${CIRCLE_TAG}.zip ACS.py System.py AMC*.py
-              mv *.zip build
-      - persist_to_workspace:
-          root: .
-          paths:
-           - build
-  pack-ids:
-    docker: 
-     - image: alpine:latest
-    steps:
-      - checkout
-      - run:
-          command: |
-              apk update && apk add zip ca-certificates
-              mkdir -p build
-              zip IDS_python_${CIRCLE_TAG}.zip ACS.py System.py IDS*.py
+              zip asc500_base.py asc500_const.py asc500_example_01.py
               mv *.zip build
       - persist_to_workspace:
           root: .
@@ -45,23 +30,17 @@ workflows:
   version: 2
   pack-tagged:
     jobs:
-      - pack-amc:
+      - pack-asc:
           filters:
             branches:
               ignore: /.*/
             tags:
               only: /^\d+\.\d+\.\d+$/
-      - pack-ids:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^\d+\.\d+\.\d+$/
+
       - publish-github-release:
           context: github_publish
           requires:
-            - pack-amc
-            - pack-ids
+            - pack-asc
           filters:
             branches:
               ignore: /.*/
