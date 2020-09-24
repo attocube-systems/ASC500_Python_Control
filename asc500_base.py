@@ -542,7 +542,7 @@ class ASC500Base:
             Location and filename of ngp file.
         """
         pfile = ct.create_string_buffer(pFile.encode('utf-8'))
-        assert os.path.isfile(pfile)
+        assert os.path.isfile(pFile)
         self._sendProfile(pfile)
 
     def getOutputStatus(self):
