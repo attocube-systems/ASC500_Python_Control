@@ -692,6 +692,10 @@ class ASC500Base:
         size : int
             Buffer size in '32 bit items'.
         """
+        if size < 128:
+            print('If size is too small (< 128), \
+                  timer triggered data will not be buffered \
+                      to avoid too many buffer-full events.')
         self._configureDataBuffering(chn,
                                      size)
 
