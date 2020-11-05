@@ -16,9 +16,11 @@ asc500 = asc.ASC500Base(binPath, dllPath)
 
 asc500.startServer()
 
+asc500.sendProfile(binPath + 'afm.ngp')
+
 asc500.setDataEnable(1)
 
-sampTime = .5
+sampTime = 1e-3
 average = 0
 chnNo = 0
 bufSize = 256

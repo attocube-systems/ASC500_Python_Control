@@ -542,7 +542,7 @@ class ASC500Base:
             Location and filename of ngp file.
         """
         pfile = ct.create_string_buffer(pFile.encode('utf-8'))
-        assert os.path.isfile(pfile)
+        assert os.path.isfile(pFile)
         self._sendProfile(pfile)
 
     def getOutputStatus(self):
@@ -692,6 +692,10 @@ class ASC500Base:
         size : int
             Buffer size in '32 bit items'.
         """
+        if size < 128:
+            print('If size is too small (< 128), \
+                  timer triggered data will not be buffered \
+                      to avoid too many buffer-full events.')
         self._configureDataBuffering(chn,
                                      size)
 
