@@ -285,9 +285,9 @@ class ASC500Base:
         self._convIndex2Phys2 = API.DYB_convIndex2Phys2
         self._convIndex2Phys2.errcheck = self.ASC_metaErrcheck
         self._convValue2Phys = API.DYB_convValue2Phys
-        self._convValue2Phys.restype = ct.c_double
+        self._convValue2Phys.restype = ct.c_float
         self._convPhys2Print = API.DYB_convPhys2Print
-        self._convPhys2Print.restype = ct.c_double
+        self._convPhys2Print.restype = ct.c_float
 
     #%% Callback definitions
 
@@ -994,7 +994,7 @@ class ASC500Base:
         float
             Rotation angle in rad.
         """
-        rotation = ct.c_double(0.)
+        rotation = ct.c_float(0.)
         self._getRotation(meta,
                           ct.byref(rotation))
         return rotation.value
@@ -1017,7 +1017,7 @@ class ASC500Base:
         float
             Line length.
         """
-        rangeX = ct.c_double(0.)
+        rangeX = ct.c_float(0.)
         self._getPhysRangeX(meta,
                             ct.byref(rangeX))
         return rangeX.value
@@ -1040,7 +1040,7 @@ class ASC500Base:
         float
             Column height.
         """
-        rangeY = ct.c_double(0.)
+        rangeY = ct.c_float(0.)
         self._getPhysRangeY(meta,
                             ct.byref(rangeY))
         return rangeY.value
@@ -1126,7 +1126,7 @@ class ASC500Base:
         float
             Independent variable.
         """
-        xVar = ct.c_double(0.)
+        xVar = ct.c_float(0.)
         self._convIndex2Phys1(meta,
                               idx,
                               ct.byref(xVar))
@@ -1154,8 +1154,8 @@ class ASC500Base:
         float
             Vertical position.
         """
-        xVar = ct.c_double(0.)
-        yVar = ct.c_double(0.)
+        xVar = ct.c_float(0.)
+        yVar = ct.c_float(0.)
         self._convIndex2Phys2(meta,
                               idx,
                               ct.byref(xVar),
