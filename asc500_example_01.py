@@ -9,8 +9,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 import asc500_base as asc
 
-binPath = "Installer\\ASC500CL-V2.7.6\\"
-dllPath = "64bit_lib\\ASC500CL-LIB-WIN64-V2.7.6\\daisybase\\lib\\"
+binPath = "Installer\\ASC500CL-V2.7.7\\"
+dllPath = "64bit_lib\\ASC500CL-LIB-WIN64-V2.7.7\\daisybase\\lib\\"
 
 asc500 = asc.ASC500Base(binPath, dllPath)
 
