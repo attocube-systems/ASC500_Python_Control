@@ -120,12 +120,12 @@ dmypy.json
 *.pch
 
 # Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+#*.exe
+#*.out
+#*.app
+#*.i*86
+#*.x86_64
+#*.hex
 
 # Debug files
 *.dSYM/
@@ -143,9 +143,9 @@ Mkfile.old
 dkms.conf
 
 # Images
-*.bmp
-*.png
-*.jpg
+#*.bmp
+#*.png
+#*.jpg
 
 # IDE
 *.layout
