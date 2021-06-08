@@ -230,6 +230,7 @@ try:
     asc500.setParameter( cc('ID_SCAN_OFFSET_X'), 0, 150 * PIXELSIZE )
     asc500.setParameter( cc('ID_SCAN_OFFSET_Y'), 0, 150 * PIXELSIZE )
     asc500.setParameter( cc('ID_SCAN_MSPPX'),    0, SAMPLETIME )
+    asc500.setParameter(cc('ID_SCAN_ONCE'), 1)
 
     # Enable Outputs and wait for success (enable outputs takes some time)
     outActive = 0
