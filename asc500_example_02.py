@@ -21,7 +21,7 @@ import asc500_const
 class Asc500:
     def __init__(self):
         # Load Daisybase DLL ...
-        self.daisybase = ct.CDLL('daisybase.dll')
+        self.daisybase = ct.CDLL('64bit_lib\\ASC500CL-LIB-WIN64-V2.7.7\\daisybase\\lib\\daisybase.dll')
         # ... and define the parameter types of its functions ...
         # ... from daisybase.h
         self.daisybase.DYB_init.argtypes              = [ct.c_char_p, ct.c_char_p, ct.c_char_p, ct.c_int32]
@@ -214,13 +214,16 @@ try:
     asc500 = Asc500()
 
     dummy   = 'FindSim'                                         # Hack: enable device simulation
-    asc500.init( dummy, '64bit_lib\\ASC500CL-LIB-WIN64-V2.7.7\\daisybase\\lib', '', cc('ASC500_PORT_NUMBER') )# Initalize DLL & start
+    asc500.init( dummy, \
+                'Installer\\ASC500CL-V2.7.7', \
+                '', \
+                cc('ASC500_PORT_NUMBER') )# Initalize DLL & start
     asc500.sendProfile( 'Installer\\ASC500CL-V2.7.7\\afm.ngp' ) # Send parameter set to device
     asc500.configureChannel( CHANNELNO, cc('CHANCONN_SCANNER'), # Connect Ch. 0 with Scanner / ADC2
                              cc('CHANADC_ADC_MIN') + 1, 0, 0 )
     asc500.configureDataBuffering( 0, 1024 )                    # Size not relevant here but >0
-    asc500.setParameter( cc('ID_SCAN_X_EQ_Y'),   0, 0 );        # Switch off annoying automatics ..
-    asc500.setParameter( cc('ID_SCAN_GEOMODE'),  0, 0 );        # that are useful only for GUI users
+    asc500.setParameter( cc('ID_SCAN_X_EQ_Y'),   0, 0 )         # Switch off annoying automatics ..
+    asc500.setParameter( cc('ID_SCAN_GEOMODE'),  0, 0 )         # that are useful only for GUI users
     asc500.setParameter( cc('ID_SCAN_PIXEL'),    0, PIXELSIZE ) # Adjust scanner parameters
     asc500.setParameter( cc('ID_SCAN_COLUMNS'),  0, COLUMNS )
     asc500.setParameter( cc('ID_SCAN_LINES'),    0, LINES )
