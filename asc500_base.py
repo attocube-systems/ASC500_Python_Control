@@ -419,7 +419,7 @@ class ASC500Base:
         ----------
         unused : str
             Unused Parameter, left for backward compatibility only. Use NULL
-            or empty string.
+            or empty string. Enter 'FindSim' to use run a virtual ASC500.
         host : str
             Hostname or IP address in "dotted decimal" notation for the host
             where the application server resides.
