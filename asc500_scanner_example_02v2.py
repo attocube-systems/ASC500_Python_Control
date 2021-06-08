@@ -29,18 +29,18 @@ def pollDataFull():
         print( "Scanner at ", pos[0], " , ", pos[1], " um" )
 
     # Read and print data frame, forward and backward scan in separate files
-    print( "Reading frame; bufSize=", frameSize, ", frameSize=",
-           asc500.getFrameSize( chNo ) )
-    out = asc500.getDataBuffer( chNo, 1, frameSize)
-    data = out[3][:]
-    index = out[1]
-    dSize = out[2]
-    frame = out[0]
-    meta = out[4]
+    print( "Reading frame; bufSize=", frameSize, ", frameSize=", asc500.getFrameSize(chNo))
+    # out = asc500.getDataBuffer(chNo, 1, frameSize)
+    # data = out[3][:]
+    # index = out[1]
+    # dSize = out[2]
+    # frame = out[0]
+    # meta = out[4]
+    frame, index, dSize, data, meta = asc500.getDataBuffer(chNo, 1, frameSize)
     print(type(meta))
     if ( dSize.value > 0 ):
         asc500.writeBufferToFile( 'scan_once', 'ADC0', 0, 1, index, dSize, frame, meta )
-        return out
+        return
     else:
         raise( "No data have been received!" )
 
@@ -73,7 +73,7 @@ bufSize = 1024
 columns = 100 # Scanrange number of columns
 lines = 150 # Scanrange number of lines
 pxSize = 1000 # Width of a column/line [10pm]
-sampTime = 1                                           # Scanner sample time [2.5us]
+sampTime = 100 # Scanner sample time [2.5us]
 frameSize = columns * lines * 2 # Amount of data in a frame
 
 binPath = 'Installer\\ASC500CL-V2.7.7\\'
