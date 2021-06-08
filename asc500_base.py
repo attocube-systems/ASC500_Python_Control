@@ -478,10 +478,10 @@ class ASC500Base:
         ----------
         address : int
             Identification of the parameter.
-        index : int
-            If defined for the parameter: subaddress, 0 otherwise.
         val : int
             New value for parameter.
+        index : int
+            If defined for the parameter: subaddress, 0 otherwise.
         sync : bool
             Enable for SYNC call. If disabled, you have to catch data via an
             event.

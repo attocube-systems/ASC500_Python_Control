@@ -23,6 +23,15 @@ frameSize = columns *lines * 2                               # Amount of data in
 DYB_EVT_DATA_00 = chNo                                             # from daisydata.h
 DYB_EVT_CUSTOM = 0x8000                                        # from daisydata.h
 
+def getScannerXYPos():
+    xOrigin   = asc500.getParameter( asc500.getConst('ID_SCAN_COORD_ZERO_X'))
+    yOrigin   = asc500.getParameter( asc500.getConst('ID_SCAN_COORD_ZERO_Y'))
+    xRelative = asc500.getParameter( asc500.getConst('ID_SCAN_CURR_X'))
+    yRelative = asc500.getParameter( asc500.getConst('ID_SCAN_CURR_Y'))
+    x = (xOrigin + xRelative) / 1e5  # 10pm -> um
+    y = (yOrigin + yRelative) / 1e5
+    return [x,y]
+
 def pollDataFull():
     event = 0                                                 # Returncode of waitForEvent
 
@@ -31,7 +40,7 @@ def pollDataFull():
     # Wait for full buffer on channel 0 and show progress
     while ( event == 0 ):
         event = asc500.waitForEvent( 500, asc500.getConst('DYB_EVT_DATA_00'), 0 );
-        pos = asc500.getScannerXYPos()
+        pos = getScannerXYPos()
         print( "Scanner at ", pos[0], " , ", pos[1], " um" )
 
     # Read and print data frame, forward and backward scan in separate files
@@ -60,7 +69,7 @@ def sendScannerCommand(command):
         # A rather simple approach: send command cyclically until the scanner is running
         state = 0
         while ( (state & asc500.getConst('SCANSTATE_SCAN')) == 0 ):
-            asc500.setParameter( asc500.getConst('ID_SCAN_COMMAND'), 0, command )
+            asc500.setParameter(asc500.getConst('ID_SCAN_COMMAND'), command)
             time.sleep( .1 )
             state = asc500.getParameter( asc500.getConst('ID_SCAN_STATUS'), 0 )
             print( "Scanner State: ", end='' );
@@ -72,7 +81,7 @@ def sendScannerCommand(command):
             print( "" )
     else:
         # Stop and pause only require one command
-        asc.setParameter( asc500.getConst('ID_SCAN_COMMAND'), 0, command )
+        asc500.setParameter(asc500.getConst('ID_SCAN_COMMAND'), command)
 
 
 binPath = 'Installer\\ASC500CL-V2.7.7\\'
@@ -91,14 +100,14 @@ print(asc500.getChannelConfig(chNo))
 asc500.configureDataBuffering(chNo, bufSize)
 
 #config Scanner
-asc500.setParameter(asc500.getConst('ID_SCAN_X_EQ_Y'), 0, 0) # Switch off annoying automatics ..
-asc500.setParameter(asc500.getConst('ID_SCAN_GEOMODE'), 0, 0)        # that are useful only for GUI users
-asc500.setParameter(asc500.getConst('ID_SCAN_PIXEL'), pxSize, 0) # Adjust scanner parameters
-asc500.setParameter(asc500.getConst('ID_SCAN_COLUMNS'),  columns, 0)
-asc500.setParameter(asc500.getConst('ID_SCAN_LINES'), lines, 0)
-asc500.setParameter(asc500.getConst('ID_SCAN_OFFSET_X'), 75 * pxSize, 0)
-asc500.setParameter(asc500.getConst('ID_SCAN_OFFSET_Y'), 75 * pxSize, 0)
-asc500.setParameter(asc500.getConst('ID_SCAN_MSPPX'), sampTime, 0)
+asc500.setParameter(asc500.getConst('ID_SCAN_X_EQ_Y'), 0) # Switch off annoying automatics ..
+asc500.setParameter(asc500.getConst('ID_SCAN_GEOMODE'), 0)        # that are useful only for GUI users
+asc500.setParameter(asc500.getConst('ID_SCAN_PIXEL'), pxSize) # Adjust scanner parameters
+asc500.setParameter(asc500.getConst('ID_SCAN_COLUMNS'), columns)
+asc500.setParameter(asc500.getConst('ID_SCAN_LINES'), lines)
+asc500.setParameter(asc500.getConst('ID_SCAN_OFFSET_X'), 75 * pxSize)
+asc500.setParameter(asc500.getConst('ID_SCAN_OFFSET_Y'), 75 * pxSize)
+asc500.setParameter(asc500.getConst('ID_SCAN_MSPPX'), sampTime)
 asc500.setParameter(asc500.getConst('ID_SCAN_ONCE'), 1)
 
 # Enable Outputs and wait for success (enable outputs takes some time)
@@ -117,7 +126,7 @@ sendScannerCommand( asc500.getConst('SCANRUN_OFF') ) # Stop scanner
 
 # Disable Outputs and wait until finished.
 # We use wait for event instead of polling for demonstration.
-asc500.setParameter( asc500.getConst('ID_OUTPUT_ACTIVATE'), 0, 0  )
+asc500.setParameter( asc500.getConst('ID_OUTPUT_ACTIVATE'), 0)
 asc500.waitForEvent( 5000, DYB_EVT_CUSTOM, asc500.getConst('ID_OUTPUT_STATUS') )
 outActive = asc500.getParameter( asc500.getConst('ID_OUTPUT_STATUS'), 0 )
 if ( outActive != 0 ):
