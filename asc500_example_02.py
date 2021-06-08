@@ -199,8 +199,8 @@ def pollDataFull():
 
     # Read and print data frame, forward and backward scan in separate files
     print( "Reading frame; bufSize=", dSize.value, ", frameSize=",
-           asc500.getFrameSize( CHANNELNO ) );
-    asc500.getDataBuffer( CHANNELNO, 1, ct.byref(frameNo), ct.byref(index), ct.byref(dSize), frame, meta );
+           asc500.getFrameSize( CHANNELNO ) )
+    asc500.getDataBuffer( CHANNELNO, 1, ct.byref(frameNo), ct.byref(index), ct.byref(dSize), frame, meta )
     if ( dSize.value > 0 ):
         asc500.writeBuffer( 'scan_fwd', 'ADC2', 0, 1, index, dSize, frame, meta )
         asc500.writeBuffer( 'scan_bwd', 'ADC2', 0, 0, index, dSize, frame, meta )
@@ -214,8 +214,8 @@ try:
     asc500 = Asc500()
 
     dummy   = 'FindSim'                                         # Hack: enable device simulation
-    asc500.init( dummy, '..\\..', '', cc('ASC500_PORT_NUMBER') )# Initalize DLL & start
-    asc500.sendProfile( '..\\..\\afm.ngp' )                     # Send parameter set to device
+    asc500.init( dummy, '64bit_lib\\ASC500CL-LIB-WIN64-V2.7.7\\daisybase\\lib', '', cc('ASC500_PORT_NUMBER') )# Initalize DLL & start
+    asc500.sendProfile( 'Installer\\ASC500CL-V2.7.7\\afm.ngp' ) # Send parameter set to device
     asc500.configureChannel( CHANNELNO, cc('CHANCONN_SCANNER'), # Connect Ch. 0 with Scanner / ADC2
                              cc('CHANADC_ADC_MIN') + 1, 0, 0 )
     asc500.configureDataBuffering( 0, 1024 )                    # Size not relevant here but >0
