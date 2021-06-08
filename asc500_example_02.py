@@ -171,12 +171,12 @@ def sendScannerCommand(command):
 # Get scanner position in abs. coordinates and in um
 
 def getScannerXYPos():
-  xOrigin   = asc500.getParameter( cc('ID_SCAN_COORD_ZERO_X'), 0 );
-  yOrigin   = asc500.getParameter( cc('ID_SCAN_COORD_ZERO_Y'), 0 );
-  xRelative = asc500.getParameter( cc('ID_SCAN_CURR_X'),       0 );
-  yRelative = asc500.getParameter( cc('ID_SCAN_CURR_Y'),       0 );
-  x = (xOrigin + xRelative) / 1.e5;  # 10pm -> um
-  y = (yOrigin + yRelative) / 1.e5;
+  xOrigin   = asc500.getParameter( cc('ID_SCAN_COORD_ZERO_X'), 0 )
+  yOrigin   = asc500.getParameter( cc('ID_SCAN_COORD_ZERO_Y'), 0 )
+  xRelative = asc500.getParameter( cc('ID_SCAN_CURR_X'),       0 )
+  yRelative = asc500.getParameter( cc('ID_SCAN_CURR_Y'),       0 )
+  x = (xOrigin + xRelative) / 1e5  # 10pm -> um
+  y = (yOrigin + yRelative) / 1e5
   return [x,y]
 
 
@@ -219,8 +219,11 @@ try:
                 '', \
                 cc('ASC500_PORT_NUMBER') )# Initalize DLL & start
     asc500.sendProfile( 'Installer\\ASC500CL-V2.7.7\\afm.ngp' ) # Send parameter set to device
-    asc500.configureChannel( CHANNELNO, cc('CHANCONN_SCANNER'), # Connect Ch. 0 with Scanner / ADC2
-                             cc('CHANADC_ADC_MIN') + 1, 0, 0 )
+    asc500.configureChannel(CHANNELNO, \
+                            cc('CHANCONN_SCANNER'), # Connect Ch. 0 with Scanner / ADC2
+                            cc('CHANADC_ADC_MIN') + 1, \
+                            0, \
+                            0)
     asc500.configureDataBuffering( 0, 1024 )                    # Size not relevant here but >0
     asc500.setParameter( cc('ID_SCAN_X_EQ_Y'),   0, 0 )         # Switch off annoying automatics ..
     asc500.setParameter( cc('ID_SCAN_GEOMODE'),  0, 0 )         # that are useful only for GUI users
@@ -230,7 +233,6 @@ try:
     asc500.setParameter( cc('ID_SCAN_OFFSET_X'), 0, 150 * PIXELSIZE )
     asc500.setParameter( cc('ID_SCAN_OFFSET_Y'), 0, 150 * PIXELSIZE )
     asc500.setParameter( cc('ID_SCAN_MSPPX'),    0, SAMPLETIME )
-    asc500.setParameter(cc('ID_SCAN_ONCE'), 1)
 
     # Enable Outputs and wait for success (enable outputs takes some time)
     outActive = 0
@@ -248,9 +250,9 @@ try:
     # We use wait for event instead of polling for demonstration.
     asc500.setParameter( cc('ID_OUTPUT_ACTIVATE'), 0, 0  )
     asc500.waitForEvent( 5000, DYB_EVT_CUSTOM, cc('ID_OUTPUT_STATUS') )
-    outActive = asc500.getParameter( cc('ID_OUTPUT_STATUS'), 0 );
+    outActive = asc500.getParameter( cc('ID_OUTPUT_STATUS'), 0 )
     if ( outActive != 0 ):
-        print( "Outputs are not deactivated!" );
+        print( "Outputs are not deactivated!" )
 
 finally:
     asc500.stop()

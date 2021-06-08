@@ -8,17 +8,6 @@ Created on Mon Jun  7 08:28:42 2021
 import asc500_base as asc
 import time
 
-# Some Constants ----------------------------------------------------------------
-chNo = 0
-average = 0
-sampTime = 0
-bufSize = 1024
-columns = 100 # Scanrange number of columns
-lines = 150 # Scanrange number of lines
-pxSize = 1000 # Width of a column/line [10pm]
-sampTime = 1                                           # Scanner sample time [2.5us]
-frameSize = columns * lines * 2 # Amount of data in a frame
-
 def getScannerXYPos():
     xOrigin   = asc500.getParameter(asc500.getConst('ID_SCAN_COORD_ZERO_X'), sync=True)
     yOrigin   = asc500.getParameter(asc500.getConst('ID_SCAN_COORD_ZERO_Y'), sync=True)
@@ -76,9 +65,20 @@ def sendScannerCommand(command):
         # Stop and pause only require one command
         asc500.setParameter(asc500.getConst('ID_SCAN_COMMAND'), command)
 
+# Some Constants ----------------------------------------------------------------
+chNo = 0
+average = 0
+sampTime = 0
+bufSize = 1024
+columns = 100 # Scanrange number of columns
+lines = 150 # Scanrange number of lines
+pxSize = 1000 # Width of a column/line [10pm]
+sampTime = 1                                           # Scanner sample time [2.5us]
+frameSize = columns * lines * 2 # Amount of data in a frame
 
 binPath = 'Installer\\ASC500CL-V2.7.7\\'
 dllPath = '64bit_lib\\ASC500CL-LIB-WIN64-V2.7.7\\daisybase\\lib\\'
+
 asc500 = asc.ASC500Base(binPath, dllPath)
 asc500.startServer('FindSim')
 asc500.sendProfile('Installer\\ASC500CL-V2.7.7\\afm.ngp')
