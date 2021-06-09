@@ -20,8 +20,6 @@ def getScannerXYPos():
 def pollDataFull():
     event = 0 # Returncode of waitForEvent
 
-    #meta = (ct.c_int32 * 13)()                                  # Metadata, should be a struct...
-
     # Wait for full buffer on channel 0 and show progress
     while ( event == 0 ):
         event = asc500.waitForEvent( 500, asc500.getConst('DYB_EVT_DATA_00'), 0 )
@@ -30,12 +28,6 @@ def pollDataFull():
 
     # Read and print data frame, forward and backward scan in separate files
     print( "Reading frame; bufSize=", frameSize, ", frameSize=", asc500.getFrameSize(chNo))
-    # out = asc500.getDataBuffer(chNo, 1, frameSize)
-    # data = out[3][:]
-    # index = out[1]
-    # dSize = out[2]
-    # frame = out[0]
-    # meta = out[4]
     frame, index, dSize, data, meta = asc500.getDataBuffer(chNo, 1, frameSize)
     print(type(meta))
     if ( dSize.value > 0 ):
