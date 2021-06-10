@@ -89,8 +89,8 @@ asc500.setParameter(asc500.getConst('ID_SCAN_GEOMODE'), 0)        # that are use
 asc500.setParameter(asc500.getConst('ID_SCAN_PIXEL'), pxSize) # Adjust scanner parameters
 asc500.setParameter(asc500.getConst('ID_SCAN_COLUMNS'), columns)
 asc500.setParameter(asc500.getConst('ID_SCAN_LINES'), lines)
-asc500.setParameter(asc500.getConst('ID_SCAN_OFFSET_X'), 150 * pxSize)
-asc500.setParameter(asc500.getConst('ID_SCAN_OFFSET_Y'), 150 * pxSize)
+asc500.setParameter(asc500.getConst('ID_SCAN_OFFSET_X'), int(columns/2 *pxSize))
+asc500.setParameter(asc500.getConst('ID_SCAN_OFFSET_Y'), int(lines/2 *pxSize))
 asc500.setParameter(asc500.getConst('ID_SCAN_MSPPX'), sampTime)
 # asc500.setParameter(asc500.getConst('ID_SCAN_ONCE'), 1)
 
