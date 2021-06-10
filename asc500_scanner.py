@@ -6,7 +6,6 @@ Created on Fri May  1 11:28:24 2020
 """
 
 import time
-import ctypes as ct
 from enum import Enum
 from asc500_base import ASC500Base
 import numpy as np
@@ -167,15 +166,13 @@ class ASC500ScannerXY(ASC500Base):
 
 if __name__ == "__main__":
 
-    server_loc = '01 ASC500 Installer and Data\\ASC500CL-18_11_13'
-    dll_loc_64 = '04 ASC500 64bit libraries\\ASC500CL-LIB-WIN64-18_11_13\\daisybase\\lib\\'
-    dll_loc_32 = '01 ASC500 Installer and Data\\ASC500CL-18_11_13\\daisybase\\lib\\'
+    server_loc = 'Installer\\ASC500CL-V2.7.7\\'
+    dll_loc_64 = '64bit_lib\\ASC500CL-LIB-WIN64-V2.7.7\\daisybase\\lib\\'
 
     xystage = ASC500ScannerXY(server_loc,
-                              7000,
                               dll_loc_64)
 
-    xystage.startServer()
+    xystage.startServer('FindSim')
     time.sleep(2)
     xystage.velocity = 3e-6
     xystage._setParameter(xystage._SCAN_PIXEL, 0)
