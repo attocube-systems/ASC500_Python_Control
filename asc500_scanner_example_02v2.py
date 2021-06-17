@@ -28,10 +28,9 @@ def pollDataFull():
 
     # Read and print data frame, forward and backward scan in separate files
     print( "Reading frame; bufSize=", frameSize, ", frameSize=", asc500.getFrameSize(chNo))
-    frame, index, dSize, data, meta = asc500.getDataBuffer(chNo, 1, frameSize)
-    print(type(meta))
+    frameNo, index, dSize, data, meta = asc500.getDataBuffer(chNo, 1, frameSize)
     if ( dSize.value > 0 ):
-        asc500.writeBufferToFile( 'scan_once', 'ADC0', 0, 1, index, dSize, frame, meta )
+        asc500.writeBufferToFile( 'scan_once', 'ADC0', 0, 1, index, dSize, data, meta )
         return
     else:
         raise( "No data have been received!" )
