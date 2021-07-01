@@ -14,7 +14,7 @@ dllPath = "64bit_lib\\ASC500CL-LIB-WIN64-V2.7.7\\daisybase\\lib\\"
 
 asc500 = asc.ASC500Base(binPath, dllPath)
 
-asc500.startServer()
+asc500.startServer('FindSim')
 
 asc500.sendProfile(binPath + 'afm.ngp')
 
