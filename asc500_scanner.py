@@ -1,202 +1,244 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri May  1 11:28:24 2020
+Created on Thu Jul  1 13:40:13 2021
 
-@author: schaecl
+@author: grundch
 """
-
 import time
-from enum import Enum
-from asc500_base import ASC500Base
-import numpy as np
 
-class ASC500ScannerXY(ASC500Base):
-    # Address definitions
-    # Scanner coordinates
-    _SCAN_CURR_X = 0x002A # Scanner position relative to voltage origin X [10pm]
-    _SCAN_CURR_Y = 0x002B # Scanner position relative to voltage origin Y [10pm]
-    # Scanner settings
-    _SCAN_OFFSET_X = 0x0010 # Centre of the scanfield, relative to origin [10pm] in X
-    _SCAN_OFFSET_Y = 0x0011 # Centre of the scanfield, relative to origin [10pm] in Y
-    _SCAN_PIXEL = 0x1021 # Pixel size [10pm]
-    _SCAN_PSPEED = 0x100B # Positioning speed [nm/s]
-    # Scanner command
-    _SCAN_COMMAND = 0x0100 # Scanner command (SCANRUN_ constants)
-    # Scanner state
-    _SCAN_STATUS = 0x0101 # Scanner running state
-    # Path mode
-    _PATH_CTRL = 0x0263 # Pathmode mode: -1=grid, >1=no of points of path
-    _PATH_EXTTRIG_EDGE = 0x0272 # Pathmode edge of external trigger (0=rising, 1=falling)
-    _PATH_XPOINT = 0x1302 # Position in [10pm]. Index corresponds to point number
-    _PATH_YPOINT = 0x1303 # Position in [10pm]. Index corresponds to point number
+class ascScannerFunctions:
+    
+    def configureScanner(self, yOffset, pxSize, columns, lines, sampTime):
+        """
+        Configures the scanner to perform a scan according to the parameters
 
-    class ScannerState(Enum):
-        PAUSE = 1
-        MOVING = 2
-        SCAN = 6 # This differs from documentation (which says SCAN=4), but seems to work like this!
-        IDLE = 8
-        LOOP = 10
+        Parameters
+        ----------
+        yOffset : float
+            Offset of the scan area in y direction (in m)
+        pxSize : int
+            Pixelsize / Size of a column/line.
+        columns : int
+            Scanrange number of columns.
+        lines : int
+            Scanrange number of lines.
+        sampT : float
+            Scanner sampling Time.
 
-    def getStatus(self):
-        """
-        Returns status of the scanner, as a ScannerState object.
-        """
-        state = self._getParameter(self._SCAN_STATUS)
-        return self.ScannerState(state)
+        Returns
+        -------
+        None.
 
-    @staticmethod
-    def unitConversion(type_, value, reverse=False):
         """
-        Takes care of unit conversion from SI-unit to scanner unit (and vice-versa).
-        type [str]: distinguishes the type of the input number
-        value [float]: number that is to be converted
-        reverse [bool]: if true, conversion is scanner-unit to SI-unit
-        """
-        convFactor = 1
-        if type_ == 'Position':
-            # position unit is 10pm: m -> 10pm
-            convFactor = 1e11
-        elif type_ == 'Velocity':
-            # scanner unit is nm/s: m/s -> nm/s
-            convFactor = 1e9
-        if reverse:
-            return value / convFactor
-        return np.round(value * convFactor)
+        maxSampTime = self.minExpTime * 2**16
+        if sampTime < self.minExpTime:
+            sampTime = self.minExpTime
+        elif sampTime > maxSampTime:
+            sampTime = maxSampTime
 
-    @property
-    def position(self):
+        sampTimeInt = int(sampTime / self.minExpTime) - 1
+        
+        self.setParameter( self.getConst('ID_SCAN_X_EQ_Y'),   0, 0 )        # Switch off annoying automatics ..
+        self.setParameter( self.getConst('ID_SCAN_GEOMODE'),  0, 0 )        # that are useful only for GUI users
+        self.resetScannerCoordSystem()
+        self.setParameter( self.getConst('ID_SCAN_PIXEL'),    pxSize, 0 ) # Adjust scanner parameters
+        self.setParameter( self.getConst('ID_SCAN_COLUMNS'),  columns, 0 )
+        self.setParameter( self.getConst('ID_SCAN_LINES'),   lines, 0 )
+        self.setParameter( self.getConst('ID_SCAN_OFFSET_X'), int(columns/2*pxSize), 0 )
+        self.setParameter( self.getConst('ID_SCAN_OFFSET_Y'), int(yOffset*1e11), 0 )
+        self.setParameter( self.getConst('ID_SCAN_MSPPX'),    sampTimeInt, 0 )
+        self.setParameter( self.getConst('ID_SCAN_ONCE'), 1)
+    
+    def resetScannerCoordSystem(self):
         """
-        Returns current scanner position as a list [x, y] in [m]
-        """
-        xCurrent = self._getParameter(self._SCAN_CURR_X)
-        yCurrent = self._getParameter(self._SCAN_CURR_Y)
-        xPos = self.unitConversion('Position', xCurrent, reverse=True)
-        yPos = self.unitConversion('Position', yCurrent, reverse=True)
-        return [xPos, yPos]
+        Resets the coordinate system of the scanner.
 
-    @position.setter
-    def position(self, newPos):
-        """
-        Sets current scanner position. Input as a list [x, y] in [m]
-        """
-        currPos = self.position
+        Returns
+        -------
+        None.
 
-        # the following checks whether the starting and target positions are
-        # the same. This is needed to avoid triggering the start of a scan
-        if not (abs(newPos[0] - currPos[0]) < 2e-9 and abs(newPos[1] - currPos[1]) < 2e-9):
-            # set scan window to zero size (i.e. the scan origin corresponds to the position)
-            self._setParameter(self._SCAN_PIXEL, 0)
-            # set scan origin
-            self.setRelativeOrigin(newPos)
-            # move to new origin (will not actually start a scan!)
-            self._setParameter(self._SCAN_COMMAND, 1)
+        """
+        currX = self.asc500.getParameter(self.getConst('ID_SCAN_COORD_ZERO_X'))
+        currY = self.asc500.getParameter(self.getConst('ID_SCAN_COORD_ZERO_Y'))
+        if (currX != 0) or (currY != 0):
+            self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_X'), currX)
+            self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_Y'), currY)
+            self.setParameter(self.getConst('ID_SCAN_COORD_MOVE'), 1)
+            self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_X'), 0)
+            self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_Y'), 0)
+    
+    def activateScanner(self):
+        """
+        Activates the output of the scanner.
 
-    def stopStage(self):
-        """
-        Turns off current Scan and Path mode.
-        """
-        if self.getStatus() == self.ScannerState.SCAN:
-            self._setParameter(self._SCAN_COMMAND, 0)
-        while self.getStatus() == self.ScannerState.MOVING:
-            time.sleep(0.1)
+        Returns
+        -------
+        None.
 
-    def triggeredScan(self, delX, delY, duration, absolute=False):
         """
-        Starts a scan relative to the current position (unless absolute=True,
-        delX and delY will be interpreted as absolute positions instead!).
-        Duration determines the scanner speed. The scan start is triggered
-        externally
+        # check if scanner output is already active?
+        
+        # Enable Outputs and wait for success (enable outputs takes some time)
+        outActive = 0
+        self.setParameter(self.getConst('ID_OUTPUT_ACTIVATE'), 1)
+        while(outActive == 0):
+            outActive = self.getParameter(self.getConst('ID_OUTPUT_STATUS'), 0 )
+            print( "Output Status: ", outActive )
+            time.sleep( .01 )
+
+    
+    def getScannerXYZRelPos(self):
         """
-        # determine target position
-        currPos = self.position
-        if not absolute:
-            targetPos = [currPos[0] + delX, currPos[1] + delY]
+        Get the scanner x and y position relative to the voltage origin.
+
+        Returns
+        -------
+        [x, y] : list
+            [x,y] relative position in m.
+
+        """
+        x = self.getParameter(self.getConst('ID_SCAN_CURR_X'), 0) *1e-11
+        y = self.getParameter(self.getConst('ID_SCAN_CURR_Y'), 0) *1e-11
+        z = self.getParameter(self.getConst('ID_REG_SET_Z_M'), 0) *1e-12
+        a = 0
+        return [x, y, z, a]
+
+    def setScannerXYZRelPos(self, pos):
+        """
+        Sets the scanner origin relative to the voltage origin.
+
+        Parameters
+        ----------
+        pos : list
+            [x,y] relative positions in microns.
+
+        Returns
+        -------
+        None.
+
+        """
+        pos = [i *1e9 for i in pos] # Convert input to nm
+        self.setParameter(self.getConst('ID_POSI_TARGET_X'), int(pos[0]*100)) #asc takes inputs in 10pm
+        self.setParameter(self.getConst('ID_POSI_TARGET_Y'), int(pos[1]*100)) #therefore conv factor 100
+        self.setParameter(self.getConst('ID_POSI_GOTO'), 0)
+        self.setParameter(self.getConst('ID_REG_SET_Z_M'), int(pos[2]*1000))
+
+    def startScanner(self):
+        """
+        Starts the scanner.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.sendScannerCommand(self.getConst('SCANRUN_ON'))
+
+    def stopScanner(self):
+        """
+        Stops the scanner.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.sendScannerCommand(self.getConst('SCANRUN_OFF'))
+
+    def sendScannerCommand(self, command):
+        """
+        Starting the scanner is a little bit more complicated as it requires two commands
+        with handshake. The function encapsulates the processing of all scanner commands.
+
+        Parameters
+        ----------
+        command : str
+            Constant name.
+
+        Returns
+        -------
+        None.
+
+        """
+        outActive_was = self.getParameter( self.getConst('ID_OUTPUT_STATUS'), 0 )
+        
+        if (outActive_was == 0):
+            self.setParameter( self.getConst('ID_OUTPUT_ACTIVATE'), 1, 0  )
+            activeChecker = 0
+            while ( activeChecker == 0 ):
+                activeChecker = self.getParameter( self.getConst('ID_OUTPUT_STATUS'), 0 )
+                print( "Output Status: ", activeChecker )
+                time.sleep( .05 )
+                
+        if (command == self.getConst('SCANRUN_ON')):
+            # Scan start requires two commands; the first one to move to the start position,
+            # (which can take a long time), the second one to actually run the scan.
+            # A rather simple approach: send command cyclically until the scanner is running
+            state = 0
+            while ( (state & self.getConst('SCANSTATE_SCAN')) == 0 ):
+                self.setParameter( self.getConst('ID_SCAN_COMMAND'), command, 0 )
+                time.sleep( .001 )
+                state = self.getParameter( self.getConst('ID_SCAN_STATUS'), 0 )
+                print( "Scanner State: ", end='' )
+                if ( state & self.getConst('SCANSTATE_PAUSE')  ): print( "Pause ", end='' )
+                if ( state & self.getConst('SCANSTATE_MOVING') ): print( "Move ",  end='' )
+                if ( state & self.getConst('SCANSTATE_SCAN')   ): print( "Scan ",  end='' )
+                if ( state & self.getConst('SCANSTATE_IDLE')   ): print( "Idle ",  end='' )
+                if ( state & self.getConst('SCANSTATE_LOOP')   ): print( "Loop ",  end='' )
+                print( "" )
         else:
-            targetPos = [delX, delY]
-
-        # set scan origin to target position, for later fall-back when PathCtrl is turned off
-        self.setRelativeOrigin(targetPos)
-
-        # calculate and set scanner velocity
-        scanLength = np.sqrt(np.sum((np.array(currPos) - np.array(targetPos))**2))
-        scanSpeed = scanLength/duration
-        self.velocity = scanSpeed
-
-        # set pathmode settings:
-        currPos = [self.unitConversion('Position', cP) for cP in currPos]
-        targetPos = [self.unitConversion('Position', tP) for tP in targetPos]
-
-        self._setParameter(self._PATH_XPOINT, currPos[0], index=0) # start point is current position
-        self._setParameter(self._PATH_XPOINT, targetPos[0], index=1) # target point
-
-        self._setParameter(self._PATH_YPOINT, currPos[1], index=0) # start point is current position
-        self._setParameter(self._PATH_YPOINT, targetPos[1], index=1) # target point
-
-        # set trigger action
-        self._setParameter(self._PATH_EXTTRIG_EDGE, 1) # set trigger edge to falling
-
-        # start path control
-        # start Path mode with two coordinates (start, target)
-        self._setParameter(self._PATH_CTRL, 2)
-
-    def setRelativeOrigin(self, pos):
+            # Stop and pause only require one command
+            self.setParameter( self.getConst('ID_SCAN_COMMAND'), command, 0 )
+    
+    def pollDataFull(self, frameSize, chn):
         """
-        This sets the scanner origin relative to the voltage origin. We use it
-        to move around within the coordinate system defined by the voltage
-        origin. Input is the position as a list [x, y] in [m].
+        Polls the data while scanner is performing a scan.
+
+        Parameters
+        ----------
+        frameSize : int
+            framesize of data.
+        chn : int
+            Internal channel connected to scanner.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
         """
-        self._setParameter(self._SCAN_OFFSET_X, self.unitConversion('Position', pos[0]))
-        self._setParameter(self._SCAN_OFFSET_Y, self.unitConversion('Position', pos[1]))
-
-    @property
-    def velocity(self):
+        event   = 0                                                 # Returncode of waitForEvent
+                
+        # Wait for full buffer on channel 0 and show progress
+        while ( event == 0 ):
+            event = self.waitForEvent(5, self.getConst('DYB_EVT_DATA_00'), 0 ) # TODO: Keep eye on this when changing channel
+            pos = self.getScannerXYPos()
+            print( "Scanner at ", pos[0], " , ", pos[1], " nm" )
+    
+        # Read and print data frame, forward and backward scan in separate files
+        print( "Reading frame; bufSize=", frameSize, ", frameSize=",
+               self.getFrameSize( chn ) )
+        out = self.getDataBuffer( chn, 1, frameSize)
+        counts = out[3][:]
+        meta = out[4]
+        if ( frameSize > 0 ):
+            return np.asarray(counts), meta
+        return 0
+    
+    def closeScanner(self):
         """
-        Returns positioning speed in [m/s]
+        Deactivates scanner outputs.
+
+        Returns
+        -------
+        None.
+
         """
-        v = self._getParameter(self._SCAN_PSPEED)
-        return self.unitConversion('Velocity', v, reverse=True)
+        self.setParameter( self.getConst('ID_OUTPUT_ACTIVATE'), 0, 0  )
+        self.waitForEvent( 5000, self.getConst('DYB_EVT_CUSTOM') , self.getConst('ID_OUTPUT_STATUS') )
+        outActive = self.getParameter( self.getConst('ID_OUTPUT_STATUS'), 0 )
+        if ( outActive != 0 ):
+            print( "Outputs are not deactivated!" )
+        else:
+            print('Outputs deactivated')
 
-    @velocity.setter
-    def velocity(self, v):
-        """
-        Sets positioning speed, input as a float in [m/s]
-        """
-        v = self.unitConversion('Velocity', v)
-        self._setParameter(self._SCAN_PSPEED, v)
-
-if __name__ == "__main__":
-
-    server_loc = 'Installer\\ASC500CL-V2.7.7\\'
-    dll_loc_64 = '64bit_lib\\ASC500CL-LIB-WIN64-V2.7.7\\daisybase\\lib\\'
-
-    xystage = ASC500ScannerXY(server_loc,
-                              dll_loc_64)
-
-    xystage.startServer('FindSim')
-    time.sleep(2)
-    xystage.velocity = 3e-6
-    xystage._setParameter(xystage._SCAN_PIXEL, 0)
-    xystage.output = 1
-    time.sleep(2)
-
-    workingPosition = [2.000005e-05, 2.262754e-05]
-    notWorkingPosition = [2.000005e-05, 2.256741e-05]
-
-    print('Line 257')
-
-    xystage.position = notWorkingPosition
-#    xystage.position = workingPosition
-    time.sleep(2)
-
-    print('Line 262')
-
-    while xystage.getStatus() == xystage.ScannerState.MOVING:
-        time.sleep(0.1)
-
-    print('Line 267')
-
-    # make sure that Scanner and PATH-Mode are off
-    xystage.stopStage()
-    xystage.triggeredScan(10e-6, 0, 5)
-
-    print('We are out')
