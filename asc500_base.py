@@ -2,10 +2,13 @@
 import ctypes as ct
 import os
 import asc500_const
+import time
+import numpy as np
+import asc500_scanner
 
 #%%
 
-class ASC500Base:
+class ASC500Base(asc500_scanner.ascScannerFunctions):
     """
     Base class for ASC500, consisting of error handling, wrapping of the DBY
     parameter set and get functions and server communication functionality.
@@ -681,7 +684,7 @@ class ASC500Base:
         only for data channels that are triggered by timer; in all other cases
         the "native" buffer size is used.
         If size is too small (< 128), timer triggered data will not be buffered
-        to avoid too mucht buffer-full events.
+        to avoid too many buffer-full events.
         If buffering is enabled, no data callback function can be used for the
         channel.
 
