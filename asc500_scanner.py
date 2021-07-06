@@ -5,15 +5,18 @@ Created on Thu Jul  1 13:40:13 2021
 @author: grundch
 """
 import time
+import numpy as np
 
 class ascScannerFunctions:
     
-    def configureScanner(self, yOffset, pxSize, columns, lines, sampTime):
+    def configureScanner(self, xOffset, yOffset, pxSize, columns, lines, sampTime):
         """
         Configures the scanner to perform a scan according to the parameters
 
         Parameters
         ----------
+        xOffset : float
+            Offset of the scan area in x direction (in m)
         yOffset : float
             Offset of the scan area in y direction (in m)
         pxSize : int
@@ -44,7 +47,7 @@ class ascScannerFunctions:
         self.setParameter( self.getConst('ID_SCAN_PIXEL'),    pxSize, 0 ) # Adjust scanner parameters
         self.setParameter( self.getConst('ID_SCAN_COLUMNS'),  columns, 0 )
         self.setParameter( self.getConst('ID_SCAN_LINES'),   lines, 0 )
-        self.setParameter( self.getConst('ID_SCAN_OFFSET_X'), int(columns/2*pxSize), 0 )
+        self.setParameter( self.getConst('ID_SCAN_OFFSET_X'), int(xOffset*1e11), 0 )
         self.setParameter( self.getConst('ID_SCAN_OFFSET_Y'), int(yOffset*1e11), 0 )
         self.setParameter( self.getConst('ID_SCAN_MSPPX'),    sampTimeInt, 0 )
         self.setParameter( self.getConst('ID_SCAN_ONCE'), 1)
@@ -58,8 +61,8 @@ class ascScannerFunctions:
         None.
 
         """
-        currX = self.asc500.getParameter(self.getConst('ID_SCAN_COORD_ZERO_X'))
-        currY = self.asc500.getParameter(self.getConst('ID_SCAN_COORD_ZERO_Y'))
+        currX = self.getParameter(self.getConst('ID_SCAN_COORD_ZERO_X'))
+        currY = self.getParameter(self.getConst('ID_SCAN_COORD_ZERO_Y'))
         if (currX != 0) or (currY != 0):
             self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_X'), currX)
             self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_Y'), currY)
@@ -77,14 +80,15 @@ class ascScannerFunctions:
 
         """
         # check if scanner output is already active?
+        outActive = self.getParameter(self.getConst('ID_OUTPUT_STATUS'), 0 )
         
+        if outActive == 0:
         # Enable Outputs and wait for success (enable outputs takes some time)
-        outActive = 0
-        self.setParameter(self.getConst('ID_OUTPUT_ACTIVATE'), 1)
-        while(outActive == 0):
-            outActive = self.getParameter(self.getConst('ID_OUTPUT_STATUS'), 0 )
-            print( "Output Status: ", outActive )
-            time.sleep( .01 )
+            self.setParameter(self.getConst('ID_OUTPUT_ACTIVATE'), 1)
+            while(outActive == 0):
+                outActive = self.getParameter(self.getConst('ID_OUTPUT_STATUS'), 0 )
+                print( "Output Status: ", outActive )
+                time.sleep( .01 )
 
     
     def getScannerXYZRelPos(self):
@@ -212,7 +216,7 @@ class ascScannerFunctions:
         # Wait for full buffer on channel 0 and show progress
         while ( event == 0 ):
             event = self.waitForEvent(5, self.getConst('DYB_EVT_DATA_00'), 0 ) # TODO: Keep eye on this when changing channel
-            pos = self.getScannerXYPos()
+            pos = self.getScannerXYZRelPos()
             print( "Scanner at ", pos[0], " , ", pos[1], " nm" )
     
         # Read and print data frame, forward and backward scan in separate files
