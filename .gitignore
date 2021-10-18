@@ -149,3 +149,8 @@ dkms.conf
 
 # IDE
 *.layout
+
+# Test files
+asc500_scanner_example_01.py
+asc500_scanner_example_02.py
+asc500_triggerissue_workingVersion.py
