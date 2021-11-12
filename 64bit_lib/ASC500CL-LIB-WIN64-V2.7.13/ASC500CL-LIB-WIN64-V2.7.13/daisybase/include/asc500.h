@@ -17,7 +17,7 @@
  *  Attocube ASC500 SPM controller.
  */
 /******************************************************************************/
-/* $Id: asc500.h,v 1.24.2.5 2019/08/22 16:48:25 trurl Exp $ */
+/* $Id: asc500.h,v 1.24.2.6 2021/11/11 15:09:17 trurl Exp $ */
 
 #ifndef __ASC500_H
 #define __ASC500_H
@@ -150,8 +150,8 @@
  *  and low temperature (index 1). @ref ID_PIEZO_T_LIM holds the two temperature values themselves.
  *  With @ref ID_PIEZO_TEMP the actual temperature can be set. It controls the interpolation of
  *  the actual voltage and deflection limits between the two fixed points.
- *
- *  The actual (i.e. interpolated) limits can be read back at separate addresses.
+ *  
+ *  The actual (i.e. interpolated) limits can be read back at separate adresses.
  *  @{
  */
 #define ID_PIEZO_VOLTLIM_X    0x1024  /**< Scanner maximum output voltage X [305.2 uV] (array)    */
@@ -200,7 +200,6 @@
  *  @{
  */
 #define ID_SCAN_ONCE          0x002F  /**< Scanner single scan; stop after first run (boolean)    */
-                                      /**< by default, scanner runs infinitely until stopped      */
 #define ID_SCAN_X_EQ_Y        0x1006  /**< Scanner fix lines=cols (boolean, for manual control)   */
 #define ID_SCAN_GEOMODE       0x1009  /**< Scanner fix aspect ratio (boolean, for manual control) */
 #define ID_SCAN_OFFSET_X      0x0010  /**< Scanner relative center of the scanfield X [10pm]      */
@@ -208,11 +207,11 @@
 #define ID_SCAN_COLUMNS       0x1003  /**< Scanner number of scan columns                         */
 #define ID_SCAN_LINES         0x001D  /**< Scanner number of scan lines                           */
 #define ID_SCAN_PIXEL         0x1021  /**< Scanner size of a column/line [10pm]                   */
-#define ID_SCAN_ROTATION      0x0018  /**< Scanner scanfield rotation [360/65536 deg]             */
+#define ID_SCAN_ROTATION      0x0018  /**< Scanner scanfeld rotation [360/65536 deg]              */
 #define ID_SCAN_MSPPX         0x1020  /**< Scanner sample time [2.5us]                            */
 #define ID_SCAN_COMMAND       0x0100  /**< Scanner command (SCANRUN_ constants)                   */
 #define ID_SCAN_PSPEED        0x100B  /**< Scanner positioning speed [nm/s]                       */
-#define ID_SCAN_ACCEL         0x0052  /**< Scanner maximum acceleration (0=unlimited) [um/s^2]    */
+#define ID_SCAN_ACCEL         0x0052  /**< Scanner maximum accelleration (0=unlimited) [um/s^2]   */
 #define ID_SCAN_ACCEL_PRC     0x0053  /**< Scanner share of accel distance outside scanrange [%]  */
 #define ID_CL_USESENPOS       0x01FE  /**< Scanner use sensor position for closed loop (bool)     */
 #define ID_CL_RESTORE         0x02F8  /**< Scanner clear saturation error (command)               */
@@ -246,8 +245,8 @@
  *  represent the running state of the scan engine - see SCANSTATE_ constants for bit masks.
  *  The saturation warning is set when the closed loop controller is running out of range; the
  *  value provides its current direction. The scanner position is relative to the voltage origin.
- *
- *  All messages are sent autonomously by the ASC500 and can be retrieved with DYB_get
+ *  
+ *  All messages are sent autonomously by the ASC500 and can be retreived with DYB_get
  *  functions as well as by setting up an event callback. They are read only; index is 0.
  *  @{
  */
@@ -287,38 +286,61 @@
 
 /** Z Readback
  *
- *  Current Z position [pm]. The position is sent periodically by the ASC500 and can be retrieved
+ *  Current Z position [pm]. The position is sent periodically by the ASC500 and can be retreived
  *  with DYB_get functions as well as by setting up an event callback. It is read only; index is 0.
  */
 #define ID_REG_GET_Z_M        0x1038
 
 /** Z Feedback Setpoint
  *
- *  The setpoint is given in the units of the input signal, but multiplied by 10000 for better
- *  resolution. The unit can be retrieved by @ref ID_GUI_UNIT_ZREG at index 0.
+ *  The setpoint is given in the units of the input signal resolution. It can be retrieved by
+ *  @ref ID_GUI_UNIT_ZREG, @ref ID_GUI_SCAL_ZREG, and @ref ID_GUI_OFFS_ZREG at index 0.
+ *  physical-value = (raw-value + offset) / scale * unit
  */
 #define ID_REG_SETP_DISP      0x007A
 
-/** Unit of setpoint
+/** Tranfer Function of Setpoint - Unit
  *
- *  The parameter is read only, DYB_set functions will fail. It reflects the unit of the input
- *  signal (@ref ID_REG_GEN_INPUT) and the setpoint. See @ref DUnits "Data Units".
+ *  The parameter reflects the unit of the input signal (@ref ID_REG_GEN_INPUT) and the setpoint.
+ *  See @ref DUnits "Data Units". 
+ *  physical-value = (raw-value + offset) / scale * unit
+ *  The parameter is read only, DYB_set functions will fail.
  */
 #define ID_GUI_UNIT_ZREG      0x1051
+
+/** Transfer Function of Setpoint - Scale
+ *
+ *  The parameter reflects the scale factor for the encoding of the input signal
+ *  (@ref ID_REG_GEN_INPUT) and the setpoint, i.e. the step in the raw value that makes
+ *  up a full unit:
+ *  physical-value = (raw-value + offset) / scale * unit
+ *  The parameter is read only, DYB_set functions will fail.
+ */
+#define ID_GUI_SCAL_ZREG      0x1055
+
+/** Transfer Function of Setpoint - Offset
+ *
+ *  The parameter reflects the offset for the encoding of the input signal
+ *  (@ref ID_REG_GEN_INPUT) and the setpoint:
+ *  physical-value = (raw-value + offset) / scale * unit
+ *  The parameter is read only, DYB_set functions will fail.
+ */
+#define ID_GUI_OFFS_ZREG      0x1056
+
 /* @} */
 
 
 /** @name Coarse Parameters
  *
- *  The addresses control the coarse step generator. Index is the coarse device (0...6).
- *  Note that not all coarse control commands work with all possible power amplifiers.
+ *  The adresses control the coarse step generator. Index is the coarse device (0...6).
+ *  Note that not all coarse control commands work with all posslible power amplifiers.
  *  @{
  */
 #define ID_CRS_AXIS_MODE      0x0284  /**< Coarse Axis Enable (1=step, 2=ground, 0=reserved!)     */
 #define ID_CRS_AXIS_UP        0x0285  /**< Coarse axis up by n steps                              */
 #define ID_CRS_AXIS_DN        0x0286  /**< Coarse axis down by n steps                            */
-#define ID_CRS_AXIS_CUP       0x0287  /**< Coarse axis continuously up (boolean)                  */
-#define ID_CRS_AXIS_CDN       0x0288  /**< Coarse axis continuously down (boolean)                */
+#define ID_CRS_AXIS_CUP       0x0287  /**< Coarse axis continously up (boolean)                   */
+#define ID_CRS_AXIS_CDN       0x0288  /**< Coarse axis continously down (boolean)                 */
 #define ID_CRS_FREQUENCY      0x0280  /**< Coarse axis frequency [Hz] (1...8000)                  */
 #define ID_CRS_VOLTAGE        0x0281  /**< Coarse axis voltage [V] (0...70)                       */
 /* @} */
@@ -326,8 +348,8 @@
 
 /** @name Auto Approach
  *
- *  The addresses control the auto approach feature. Index is always 0.
- *  Note that not all coarse control commands work with all possible power amplifiers.
+ *  The adresses control the auto approach feature. Index is always 0.
+ *  Note that not all coarse control commands work with all posslible power amplifiers.
  *  @{
  */
 #define ID_AAP_CTRL           0x0090  /**< Auto approach on/off (boolean)                         */
@@ -346,10 +368,12 @@
 
 /** AAP Stop Threshold
  *
- *  The threshold is given in the units of the Z feedback input signal, but multiplied by 10000
- *  for better resolution. The unit can be retrieved by @ref ID_GUI_UNIT_ZREG at index 0.
+ *  The threshold is given in the units of the Z feedback input signal.
+ *  The transfer function can be retrieved by
+ *  @ref ID_GUI_UNIT_ZREG, @ref ID_GUI_SCAL_ZREG, and @ref ID_GUI_OFFS_ZREG at index 0.
+ *  physical-value = (raw-value + offset) / scale * unit
  */
-#define ID_AAP_THR_DISP       0x00AD
+#define ID_AAP_THRESHOLD      0x0091
 
 #define CRS_DEVICE_ANC        0x00    /**< Coarse device ANC300 / ANC350                          */
 #define CRS_DEVICE_TTL        0x01    /**< Coarse device TTL via DAC2                             */
@@ -416,7 +440,7 @@
 #define ID_REG_A_KP_DISP      0x10A8  /**< AFM amplitude controller P [10^-6]                     */
 
 #define ID_AFM_R_FRQ_CTRL     0x00EB  /**< AFM frequency controller loop on (boolean)             */
-#define ID_AFM_L_DF_DISP      0x10AD  /**< AFM frequency controller df [mHz]                      */
+#define ID_AFM_L_DF_DISP      0x10AD  /**< AFM frequency controller df [mHz]                 */
 #define ID_AFM_R_FRQMIN       0x00C7  /**< AFM frequency controller minimum [mHz]                 */
 #define ID_AFM_R_FRQMAX       0x00DB  /**< AFM frequency controller maximum [mHz]                 */
 #define ID_REG_F_KI_DISP      0x10A5  /**< AFM frequency controller I [uHz]                       */
@@ -456,7 +480,7 @@
 #define ID_AFM_R_FRQ_DISP     0x00F5
 
 
-/** Unit of Amplitude Feedback Setpoint
+/** Unit of Frequency Feedback Setpoint
  *
  *  The parameter is read only, DYB_set functions will fail. It reflects the unit of the input
  *  signal and the setpoint. See @ref DUnits "Data Units".
@@ -538,8 +562,8 @@
  *  about the current voltage measured by the ADC selected by the index. Index=0 relates to ADC 1,
  *  Index=1 relates to ADC 2 and so on. The appropriate unit to a given ADC value is supplied
  *  by @ref ID_ADC_VAL_UNIT, see @ref DUnits "Data Units" for details.
- *  The ADC value itself is multiplied with 1.000.000 to provide sufficient accuracy.
- *  The values can be retrieved with DYB_get functions or by setting up an event callback.
+ *  The ADC value itself is multiplied with 1.000.000 to provide sufficent accuracy.
+ *  The values can be retreived with DYB_get functions or by setting up an event callback.
  *  @{
  */
 #define ID_ADC_VALUE          0x0037  /**< ADC value                                              */
@@ -589,7 +613,7 @@
 /* @} */
 
 
-/** @name Data Units
+/** @name Data Units 
  *
  *  @anchor DUnits
  *  Constants used by e.g. @ref ID_GUI_UNIT_GENREG to inform about
