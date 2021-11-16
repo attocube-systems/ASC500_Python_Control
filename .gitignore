@@ -153,4 +153,5 @@ dkms.conf
 # Test files
 asc500_scanner_example_01.py
 asc500_scanner_example_02.py
+asc500_scanner_example_02_new.py
 asc500_triggerissue_workingVersion.py

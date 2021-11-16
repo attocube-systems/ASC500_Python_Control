@@ -1,14 +1,13 @@
 
 import ctypes as ct
 import os
-import asc500_const
+import lib.asc500_const as asc500_const
 import time
 import numpy as np
-import asc500_scanner
 
 #%%
 
-class ASC500Base(asc500_scanner.ascScannerFunctions):
+class ASC500Base():
     """
     Base class for ASC500, consisting of error handling, wrapping of the DBY
     parameter set and get functions and server communication functionality.
@@ -439,7 +438,12 @@ class ASC500Base(asc500_scanner.ascScannerFunctions):
                    self.portNr)
         self._run()
 
-
+    def setOutputsWaiting(self, enable, waitTime = 1000):
+        self.setOutputs(enable)
+        self._waitForEvent(waitTime,
+                           self.getConst('DYB_EVT_CUSTOM'),
+                           self.getConst('ID_OUTPUT_STATUS'))
+        
     def stopServer(self, waitTime=1000):
         """
         Cleanly disconnects server.
@@ -554,10 +558,11 @@ class ASC500Base(asc500_scanner.ascScannerFunctions):
 
         Returns
         -------
-        list
+        status : list
             Output status of outputs.
         """
-        return self.getParameter(self.getConst('ID_OUTPUT_STATUS'))
+        status = self.getParameter(self.getConst('ID_OUTPUT_STATUS'))
+        return status
 
     def setOutputs(self, enable):
         """
