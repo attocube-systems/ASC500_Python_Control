@@ -276,7 +276,7 @@ class ASC500Scanner(ASC500Base):
         positions = [xPos, yPos]
         return positions
     
-    def setPositionXYRel(self, positions):
+    def setPositionsXYRel(self, positions):
         """
         Sets the scanners x and y position relative to the voltage origin as list.
 
@@ -295,7 +295,7 @@ class ASC500Scanner(ASC500Base):
         # except self.outOfLimitsError:
         #     raise
             
-        currPos = self.positionXYRel
+        currPos = self.getPositionsXYRel()
         # the following checks whether the starting and target positions are the same. This is needed
         # to avoid triggering the start of a scan
         if not (abs(positions[0] - currPos[0]) < 2e-9 and abs(positions[1] - currPos[1]) < 2e-9):
@@ -303,7 +303,7 @@ class ASC500Scanner(ASC500Base):
             self.setParameter(self.getConst('ID_POSI_TARGET_Y'), positions[1]*1e11) 
             self.setParameter(self.getConst('ID_POSI_GOTO'), 0)
 
-    def getPositionXYZRel(self):
+    def getPositionsXYZRel(self):
         """
         Get the scanner x, y and z positions relative to the voltage origin.
 
@@ -323,7 +323,7 @@ class ASC500Scanner(ASC500Base):
         positions = [xPos, yPos, zPos]
         return positions
     
-    def setPositionXYZRel(self, position):
+    def setPositionsXYZRel(self, positions):
         """
         Sets the scanner x, y and z positions relative to the voltage origin.
 
@@ -337,15 +337,16 @@ class ASC500Scanner(ASC500Base):
         None.
 
         """
+        currPos = self.getPositionsXYRel()
         # try:
         #     self._checkPositioningLimits(x=position[0], y=position[1])
         # except self.outOfLimitsError:
         #     raise
         if not (abs(positions[0] - currPos[0]) < 2e-9 and abs(positions[1] - currPos[1]) < 2e-9):
-            self.setParameter(self.getConst('ID_POSI_TARGET_X'), position[0]*1e11) #asc takes inputs in 10pm
-            self.setParameter(self.getConst('ID_POSI_TARGET_Y'), position[1]*1e11) 
+            self.setParameter(self.getConst('ID_POSI_TARGET_X'), positions[0]*1e11) #asc takes inputs in 10pm
+            self.setParameter(self.getConst('ID_POSI_TARGET_Y'), positions[1]*1e11) 
             self.setParameter(self.getConst('ID_POSI_GOTO'), 0)
-            self.setParameter(self.getConst('ID_REG_SET_Z_M'), position[2]*1e12)
+            self.setParameter(self.getConst('ID_REG_SET_Z_M'), positions[2]*1e12)
 
     def startScanner(self):
         """
