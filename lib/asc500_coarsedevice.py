@@ -1,6 +1,8 @@
+from lib.asc500_base import ASC500Base
+
 #This class is not working with the ANC350 or AMC300
 
-class ASC500CoarseDevice():
+class ASC500CoarseDevice(ASC500Base):
     '''The adresses control the coarse step generator. Index is the coarse device (0...6).
     Note that not all coarse control commands work with all posslible power amplifiers.'''
 

@@ -8,6 +8,8 @@ import re
 import time
 import numpy as np
 import enum
+from lib.asc500_base import ASC500Base
+
 
 class ScannerState(enum.Enum):
         PAUSE = 1
@@ -17,7 +19,7 @@ class ScannerState(enum.Enum):
         IDLE = 8
         LOOP = 10
 
-class ASC500Scanner():
+class ASC500Scanner(ASC500Base):
     
     def getScannerState(self):
         state = self.getParameter(self.getConst('ID_SCAN_STATUS'))

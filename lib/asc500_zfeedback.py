@@ -1,4 +1,7 @@
-class ASC500ZFeedback():
+from lib.asc500_base import ASC500Base
+
+
+class ASC500ZFeedback(ASC500Base):
 
     def getZFeedbackLoop(self):
         """

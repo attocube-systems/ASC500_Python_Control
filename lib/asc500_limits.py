@@ -1,4 +1,7 @@
-class ASC500Limits():
+from lib.asc500_base import ASC500Base
+
+
+class ASC500Limits(ASC500Base):
     
     # Voltage Limits:
     def getXVoltageLimit(self):

@@ -1,5 +1,6 @@
+from lib.asc500_base import ASC500Base
 
-class ASC500AFM():
+class ASC500AFM(ASC500Base):
     """ These funciotns control the AFM measurement method and related features."""
     
     def getTFExcicationFrequency(self):

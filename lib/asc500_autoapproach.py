@@ -8,8 +8,10 @@ import re
 import time
 import numpy as np
 import enum
+from lib.asc500_base import ASC500Base
 
-class ASC500AutoApproach():
+
+class ASC500AutoApproach(ASC500Base):
     
     def getAApEnabled(self):
         """
@@ -330,33 +332,35 @@ class ASC500AutoApproach():
         """
         self.setParameter(self.getConst('ID_AAP_CRS_DIR'), direction)
 
-    def stepAApCoarseUp(self):
+    def setAApCoarseUpEnabled(self, enabled):
         """
-        This function performs one upwards step with the coarse device.
+        This function sets the upwards movement with the coarse device.
 
         Parameters
         ----------
-        None.
+        enabled : int
+            [0, 1] Coarse stage upwards movement [disabled, enabled]
 
         Returns
         -------
         None.
         """
-        self.setParameter(self.getConst('ID_AAP_CRSADJ_UP'))
+        self.setParameter(self.getConst('ID_AAP_CRSADJ_UP'), enabled)
     
-    def stepAApCoarseDown(self):
+    def setAApCoarseDownEnabled(self, enabled):
         """
-        This function performs one downwards step with the coarse device.
+        This function sets the downwards movement with the coarse device.
 
         Parameters
         ----------
-        None.
+        enabled : int
+            [0, 1] Coarse stage downwards movement [disabled, enabled]
 
         Returns
         -------
         None.
         """
-        self.setParameter(self.getConst('ID_AAP_CRSADJ_DN'))
+        self.setParameter(self.getConst('ID_AAP_CRSADJ_DN'), enabled)
 
     def getAApCoarseStatus(self):
         """

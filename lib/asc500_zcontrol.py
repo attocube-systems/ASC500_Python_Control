@@ -1,4 +1,6 @@
-class ASC500ZControl():
+from lib.asc500_base import ASC500Base
+
+class ASC500ZControl(ASC500Base):
 
     def getPositionZ(self):
         """

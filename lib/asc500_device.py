@@ -10,14 +10,14 @@ from lib.asc500_zfeedback import ASC500ZFeedback
 
 class Device():
     def __init__(self, binPath, dllPath, portNr=-1):
-        self.afm = ASC500AFM()
-        self.aap = ASC500AutoApproach()
+        self.afm = ASC500AFM(binPath, dllPath, portNr)
+        self.aap = ASC500AutoApproach(binPath, dllPath, portNr)
         self.base = ASC500Base(binPath, dllPath, portNr)
-        self.coarse = ASC500CoarseDevice()
-        self.limits = ASC500Limits()
-        self.scanner = ASC500Scanner()
-        self.zcontrol = ASC500ZControl()
-        self.zfeedback = ASC500ZFeedback()
+        self.coarse = ASC500CoarseDevice(binPath, dllPath, portNr)
+        self.limits = ASC500Limits(binPath, dllPath, portNr)
+        self.scanner = ASC500Scanner(binPath, dllPath, portNr)
+        self.zcontrol = ASC500ZControl(binPath, dllPath, portNr)
+        self.zfeedback = ASC500ZFeedback(binPath, dllPath, portNr)
 
 
 
