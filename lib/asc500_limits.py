@@ -213,7 +213,7 @@ class ASC500Limits(ASC500Base):
         tLimAct : float
             actual T-dependent deflection limit in [m]
         """
-        tLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTRG_X')*1e-11)
+        tLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTRG_X'))*1e-11
         return tLimAct
 
     def getYActualTravelLimit(self):
@@ -229,7 +229,7 @@ class ASC500Limits(ASC500Base):
         tLimAct : float
             actual T-dependent deflection limit in [m]
         """
-        tLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTRG_X')*1e-11)
+        tLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTRG_X'))*1e-11
         return tLimAct
     
     def getZActualTravelLimit(self):
@@ -245,7 +245,7 @@ class ASC500Limits(ASC500Base):
         tLimAct : float
             actual T-dependent deflection limit in [m]
         """
-        tLimAct = self.getParameter(self.getConst('ID_REG_ZABS_LIMM')*1e-12)
+        tLimAct = self.getParameter(self.getConst('ID_REG_ZABS_LIMM'))*1e-12
         return tLimAct
 
     def setXTravelLimit(self, tLim):
