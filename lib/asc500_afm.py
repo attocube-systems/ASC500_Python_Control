@@ -125,7 +125,7 @@ class ASC500AFM(ASC500Base):
         -------
         None.
         """
-        self.setParameter(self.getConst('ID_AFM_L_PHASE'))/1.463*1e9
+        self.setParameter(self.getConst('ID_AFM_L_PHASE'), phaseshift/1.463*1e9)
 
     def getTFDetectionSampleTime(self):
         """
@@ -174,7 +174,7 @@ class ASC500AFM(ASC500Base):
         rawvalue = self.getParameter(self.getConst('ID_AFM_R_AMP_DISP'))
         unit = self.getParameter(self.getConst('ID_GUI_UNIT_AREG'))
         setpoint = rawvalue*unit
-        return setpoint
+        return rawvalue*1e-3
 
     def setTFAmplitudeSetpoint(self, setpoint):
         """
@@ -190,8 +190,8 @@ class ASC500AFM(ASC500Base):
         None.
         """
         unit = self.getParameter(self.getConst('ID_GUI_UNIT_AREG'))
-        rawvalue = setpoint/unit
-        self.setParameter(self.getConst('ID_AFM_R_AMP_DISP'), rawvalue)
+        
+        self.setParameter(self.getConst('ID_AFM_R_AMP_DISP'), setpoint*1e3)
 
     def getTFFrequencySetpoint(self):
         """

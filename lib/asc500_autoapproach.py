@@ -35,14 +35,14 @@ class ASC500AutoApproach(ASC500Base):
 
         Parameters
         ----------
-        enabled : int
+        enable : int
             [0, 1] Off/On
 
         Returns
         -------
         None.
         """
-        self.setParameter(self.getConst('ID_AAP_CTRL'), enabled)
+        self.setParameter(self.getConst('ID_AAP_CTRL'), enable)
     
     def getAApSpeed(self):
         """
@@ -72,7 +72,7 @@ class ASC500AutoApproach(ASC500Base):
         Returns
         -------
         """
-        self.setParameter(self.getConst('ID_AAP_SPEED'), speed)/976.6*1e6
+        self.setParameter(self.getConst('ID_AAP_SPEED'), speed/976.6*1e6)
 
     def getAApAproachMode(self):
         """
@@ -153,9 +153,9 @@ class ASC500AutoApproach(ASC500Base):
         scale = self.getParameter(self.getConst('ID_GUI_SCAL_ZREG'))
         offset = self.getParameter(self.getConst('ID_GUI_OFFS_ZREG'))
         raw_val = self.getParameter(self.getConst('ID_AAP_THRESHOLD'))
-        threshold = (raw_val + offset) / scale * unit
+        threshold = (raw_val + offset) / scale #* unit
         
-        return threshold
+        return threshold*1e-3
 
     def setAApThreshold(self, threshold):
         """
@@ -173,9 +173,9 @@ class ASC500AutoApproach(ASC500Base):
         unit = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
         scale = self.getParameter(self.getConst('ID_GUI_SCAL_ZREG'))
         offset = self.getParameter(self.getConst('ID_GUI_OFFS_ZREG'))
-        raw_val = (threshold * scale / unit) - offset
+        raw_val = (threshold * scale) # * unit) - offset
         
-        self.setParameter(self.getConst('ID_AAP_THRESHOLD'), raw_val)
+        self.setParameter(self.getConst('ID_AAP_THRESHOLD'), raw_val*1e3)
 
     def getAApStopCondition(self):
         """

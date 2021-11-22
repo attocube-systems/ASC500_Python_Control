@@ -498,7 +498,7 @@ class ASC500Base():
         ret.value : int
             The return of the SYNC call. In case of ASYNC, returns 0.
         """
-        val = ct.c_int32(val)
+        val = ct.c_int32(int(val))
         ret = ct.c_int32(0)
         if sync:
             self._setParameterSync(address, index, val, ct.byref(ret))

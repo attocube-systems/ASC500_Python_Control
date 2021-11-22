@@ -243,9 +243,9 @@ class ASC500ZFeedback(ASC500Base):
         scale = self.getParameter(self.getConst('ID_GUI_SCAL_ZREG'))
         unit = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
         
-        setpoint = (raw_val + offset)/scale * unit
+        setpoint = (raw_val + offset)/scale #* unit
         
-        return setpoint
+        return setpoint*1e-3
 
 
     def setZFeedbackSetpoint(self, setpoint):
@@ -265,6 +265,6 @@ class ASC500ZFeedback(ASC500Base):
         scale = self.getParameter(self.getConst('ID_GUI_SCAL_ZREG'))
         unit = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
         
-        raw_val = (setpoint * scale)/unit - offset
+        raw_val = (setpoint * scale) #/unit - offset
         
-        self.setParameter(self.getConst('ID_REG_SETP_DISP'), raw_val)
+        self.setParameter(self.getConst('ID_REG_SETP_DISP'), raw_val*1e3)
