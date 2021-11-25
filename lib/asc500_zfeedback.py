@@ -192,6 +192,37 @@ class ASC500ZFeedback(ASC500Base):
         None
         """
         self.setParameter(self.getConst('ID_REG_KP_DISP'), value *1e6)
+    
+    def getZFeedbackPIConstant(self):
+        """
+        This function retrieves if the Z feedback controller P and I values are forced to be constant.
+
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        enabled : int
+            [0, 1] forced P and I to be constant [off/on]
+        """
+        enabled = self.getParameter(self.getConst('ID_REG_PI_CONST'))
+        return enabled
+
+    def setZFeedbackPIConstant(self, enable):
+        """
+        This function forces the Z feedback controller P and I values to be constant.
+
+        Parameters
+        ----------
+        enable : int
+            [0, 1] forces P and I to be constant [off/on]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_REG_PI_CONST'), enable)
 
     def getZFeedbackPolarity(self):
         """
@@ -225,6 +256,166 @@ class ASC500ZFeedback(ASC500Base):
         self.setParameter(self.getConst('ID_REG_POLARITY'), polarity)
         pass
 
+    def getSlopeCompensation(self):
+        """
+        This function retrieves if the feedback slope compensation is enabled.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        enabled : int
+            [0, 1] Feedback slope compensation is [off/on]
+        """
+        enabled = self.getParameter(self.getConst('ID_REG_SLOPE_REQUEST'))
+        return enabled
+
+    def setSlopeCompensation(self, enable):
+        """
+        This function sets the feedback slope compensation [off/on].
+
+        Parameters
+        ----------
+        enabled : int
+            [0, 1] feedback slope compensation [off/on]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_REG_SLOPE_REQUEST'), enable)
+    
+    def getSlopeCompensationStatus(self):
+        """
+        This function retrieves current status of the feedback slope compensation [0=off, 1=on, other=adjusting].
+
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        status : int
+            Status of the feedback slope compensation [0=off, 1=on, other=adjusting]
+        """
+        status = self.getParameter(self.getConst('ID_REG_SLOPE_STATUS'))
+        return status
+
+    def setSlopeCompensationStatus(self, status):
+        """
+        This function sets the status of the feedback slope compensation [0=off, 1=on, other=adjusting].
+
+        Parameters
+        ----------
+        status : int
+            Status of the feedback slope compensation [0=off, 1=on, other=adjusting]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_REG_SLOPE_STATUS'), status)
+
+    def getSlopeX(self):
+        """
+        This function retrieves the slope compensation X value in [%].
+
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        slopeX : float
+            Slope compensation X value in [%]
+        """
+        slopeX = self.getParameter(self.getConst('ID_REG_SLOPE_X'))*6.104*1e-4
+        return slopeX
+
+    def setSlopeX(self, slopeX):
+        """
+        This function sets the slope compensation X value in [%].
+
+        Parameters
+        ----------
+        slopeX : float
+            Slope compensation X value in [%]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_REG_SLOPE_X'), slopeX/6.104*1e4)
+    
+    def getSlopeY(self):
+        """
+        This function retrieves the slope compensation Y value in [%].
+
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        slopeY : float
+            Slope compensation Y value in [%]
+        """
+        slopeY = self.getParameter(self.getConst('ID_REG_SLOPE_Y'))*6.104*1e-4
+        return slopeY
+
+    def setSlopeY(self, slopeY):
+        """
+        This function sets the slope compensation Y value in [%].
+
+        Parameters
+        ----------
+        slopeY : float
+            Slope compensation Y value in [%]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_REG_SLOPE_Y'), slopeY/6.104*1e4)
+    
+    def getSlopeY(self):
+        """
+        This function retrieves the slope compensation X and Y value as list in [%].
+
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        slopeXY : list
+            [slopeX, slopeY] Slope compensation X and Y values in [%]
+        """
+        slopeX = self.getParameter(self.getConst('ID_REG_SLOPE_X'))*6.104*1e-4
+        slopeY = self.getParameter(self.getConst('ID_REG_SLOPE_Y'))*6.104*1e-4
+        slopeXY = [slopeX, slopeY]
+        return slopeXY
+
+    def setSlopeXY(self, slopeXY):
+        """
+        This function sets the slope compensation X and Y values as list in [%].
+
+        Parameters
+        ----------
+        slopeXY : list
+            [slopeX, slopeY] Slope compensation X and Y values in [%]
+
+        Returns
+        -------
+        None.
+        """
+        [slopeX, slopeY] = slopeXY
+        self.setParameter(self.getConst('ID_REG_SLOPE_X'), slopeX/6.104*1e4)
+        self.setParameter(self.getConst('ID_REG_SLOPE_Y'), slopeY/6.104*1e4)
+
+
     def getZFeedbackSetpoint(self):
         """
         This function retrieves the setpoint amplitude for the Z feedback.
@@ -235,8 +426,8 @@ class ASC500ZFeedback(ASC500Base):
         
         Returns
         -------
-        setpoint : int 
-            Coarse axis amplitude in [V]
+        setpoint : float 
+            Setpoint amplitude in [V]
         """
         raw_val = self.getParameter(self.getConst('ID_REG_SETP_DISP'))
         offset = self.getParameter(self.getConst('ID_GUI_OFFS_ZREG'))
@@ -258,8 +449,8 @@ class ASC500ZFeedback(ASC500Base):
         
         Returns
         -------
-        setpoint : int
-            Coarse axis amplitude in [V]
+        setpoint : float
+            Setpoint amplitude in [V]
         """
         offset = self.getParameter(self.getConst('ID_GUI_OFFS_ZREG'))
         scale = self.getParameter(self.getConst('ID_GUI_SCAL_ZREG'))

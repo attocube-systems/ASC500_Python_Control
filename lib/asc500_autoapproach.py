@@ -252,7 +252,7 @@ class ASC500AutoApproach(ASC500Base):
         axis : int
             [0..2] or [0..7] depending on HW
         """
-        axis = self.getParamter(self.getConst('ID_AAP_AXIS'))
+        axis = self.getParameter(self.getConst('ID_AAP_AXIS'))
         return axis
     
     def setAApCoarseAxis(self, axis):
@@ -268,7 +268,7 @@ class ASC500AutoApproach(ASC500Base):
         -------
         None.
         """
-        self.setParamter(self.getConst('ID_AAP_AXIS'), axis)
+        self.setParameter(self.getConst('ID_AAP_AXIS'), axis)
     
     def getAApStepsPerApproach(self):
         """
@@ -440,9 +440,40 @@ class ASC500AutoApproach(ASC500Base):
         """
         self.setParameter(self.getConst('ID_AAP_CRS_HLDTIME'), time*1e6)
 
+    def getAApSwitchToGround(self):
+        """
+        This function retrieves if the amplifiers is switched to GND between the approaches.
+
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        enabled : int
+            [0, 1] Switch to GND is [disabled/enabled]
+        """
+        enabled = self.getParameter(self.getConst('ID_AAP_GNDWHILEAP'))
+        return enabled
+
+    def setAApSwitchToGround(self, enable):
+        """
+        This function sets if the amplifiers is switched to GND between the approaches.
+
+        Parameters
+        ----------
+        enable : int
+            [0, 1] Switch to GND is [disabled/enabled]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_AAP_GNDWHILEAP'), enable)
+
     def getAApCoarseDevice(self):
         """
-        This function retrieves the auto approach on/off.
+        This function retrieves which auto approach coarse divce is currently set.
 
         Parameters
         ----------
@@ -458,7 +489,7 @@ class ASC500AutoApproach(ASC500Base):
 
     def setAApCoarseDevice(self, device):
         """
-        This function sets the auto approach on/off.
+        This function sets the auto approach coarse device.
 
         Parameters
         ----------

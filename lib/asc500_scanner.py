@@ -21,14 +21,42 @@ class ScannerState(enum.Enum):
 
 class ASC500Scanner(ASC500Base):
     
-    def getScannerState(self):
+    def getScannerStateMoving(self):
+        """
+        This function retrieves if the scanner is in a moving or scanning state.
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        moving : int
+            [0, 1] scanner is [not moving, moving]
+        """
         state = self.getParameter(self.getConst('ID_SCAN_STATUS'))
         if state == ScannerState.MOVING \
                or state == ScannerState.SCAN4 \
                or state == ScannerState.SCAN6 :
-            return 1
+            moving = 1
         else:
-            return 0
+            moving = 0
+        return moving
+    
+    def getScannerState(self):
+        """
+        This function retrieves the scanner state.
+
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        ScannerState : enum
+            The state the scanner is currently in, see ScanerState class
+        """
+        state = self.getParameter(self.getConst('ID_SCAN_STATUS'))
         return ScannerState(state)
     
     @staticmethod
@@ -118,6 +146,38 @@ class ASC500Scanner(ASC500Base):
         self.setParameter( self.getConst('ID_SCAN_MSPPX'),    sampTimeInt, 0 )
         self.setParameter( self.getConst('ID_SCAN_ONCE'), 1)
     
+    def getScanOnce(self):
+        """
+        This function retrieves the scanners single scan property = if the scanner stops after the first run.
+
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        once : int
+            [0, 1] single scan [off, on]
+        """
+        once = self.getParameter(self.getConst('ID_SCAN_ONCE'))
+        return once
+
+    def setScanOnce(self, once):
+        """
+        This function sets the scanners single scan property.
+        If set, the scanner stops after the first run.
+
+        Parameters
+        ----------
+        once : int
+            [0, 1] single scan [off, on]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_SCAN_ONCE'), once)
+
     def getGeoMode(self):
         """
         Retrieves if the aspect ratio of the scan is set fixed.
@@ -131,7 +191,7 @@ class ASC500Scanner(ASC500Base):
         fixed : int
             [0, 1] fixed X and Y [off, on]
         """
-        fixed = self.getParameter( self.getConst('ID_SCAN_X_EQ_Y'))
+        fixed = self.getParameter( self.getConst('ID_SCAN_GEOMODE'))
         return fixed
 
     def setGeoMode(self, fixed):
@@ -147,7 +207,7 @@ class ASC500Scanner(ASC500Base):
         -------
         None.
         """
-        self.setParameter( self.getConst('ID_SCAN_X_EQ_Y'), fixed)
+        self.setParameter( self.getConst('ID_SCAN_GEOMODE'), fixed)
 
     def getXEqualY(self):
         """
@@ -233,6 +293,62 @@ class ASC500Scanner(ASC500Base):
             self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_X'), 0)
             self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_Y'), 0)
     
+    def getScannerCoordSystemZero(self):
+        """
+        Retrieves the currently set zero-position of the scanners coordinate system as list [coordX0, coordY0].
+
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        coord0 : list
+            [coordX0, coordY0] scanner coordinate system zero-position
+
+        """
+        coordX0 = self.getParameter(self.getConst('ID_SCAN_COORD_ZERO_X'))
+        coordY0 = self.getParameter(self.getConst('ID_SCAN_COORD_ZERO_Y'))
+        coord0 = [coordX0, coordY0]
+        return coord0
+    
+    def getScannerAbsolutCoordSystem(self):
+        """
+        Retrieves the currently set origin of the scanners absolute coordinate system in [m].
+
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        coordAbs : list
+            [coordAbsX, coordAbsY] scanners new absolute coordinate system origin in [m].
+        """
+        coordAbsX = self.getParameter(self.getConst('ID_SCAN_COORD_MOVE_X'))*1e-11
+        coordAbsY = self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_Y'))*1e-11
+        coordAbs = [coordAbsX, coordAbsY]
+        return coordAbs
+
+    def setScannerAbsolutCoordSystem(self, coordAbs):
+        """
+        Sets the new origin of the scanners absolute coordinate system as list in [m].
+
+        Parameters
+        ----------
+        coordAbs : list
+            [coordAbsX, coordAbsY] scanners new absolute coordinate system origin in [m].
+        
+        Returns
+        -------
+        None.
+        """
+        coordAbsX = coordAbs[0]
+        coordAbsY = coordAbs[0]
+        self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_X'), coordAbsX *1e11)
+        self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_Y'), coordAbsY *1e11)
+        self.sendScannerCommand(self.getConst('ID_SCAN_COORD_MOVE'))
+
     def setOutputsActive(self):
         """
         Activates the output of the scanner.
@@ -362,6 +478,21 @@ class ASC500Scanner(ASC500Base):
 
         """
         self.sendScannerCommand(self.getConst('SCANRUN_ON'))
+    
+    def pauseScanner(self):
+        """
+        Pauses the scanner.
+
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.sendScannerCommand(self.getConst('SCANRUN_PAUSE'))
 
     def stopScanner(self):
         """
@@ -376,11 +507,11 @@ class ASC500Scanner(ASC500Base):
         None.
 
         """
-        state = self.getScannerState()
+        state = self.getScannerStateMoving()
         if state == 1:
             self.sendScannerCommand(self.getConst('SCANRUN_OFF'))
             time.sleep(0.1)
-        while self.getScannerState() == 1:
+        while self.getScannerStateMoving() == 1:
             self.sendScannerCommand(self.getConst('SCANRUN_OFF'))
             time.sleep(0.1)
         if self.getParameter(self.getConst('ID_EXTTRG_STATUS')):
@@ -434,7 +565,7 @@ class ASC500Scanner(ASC500Base):
     
     def triggeredScan(self, deltaX, deltaY, duration, absolute=False):
         """
-        Starts a scan relative to the current position (unless absolute=True, delX and delY will be interpreted as
+        Starts a scan relative to the current position (unless absolute=True, deltaX and deltaY will be interpreted as
         absolute positions instead!). Duration determines the scanner speed. The scan start is triggered externally
         
         Parameters
@@ -459,9 +590,9 @@ class ASC500Scanner(ASC500Base):
         # determine target position
         currPos = self.positionXYZRel
         if not absolute:
-            targetPos = [currPos[0] + delX, currPos[1] + delY]
+            targetPos = [currPos[0] + deltaX, currPos[1] + deltaY]
         else:
-            targetPos = [delX, delY]
+            targetPos = [deltaX, deltaY]
 
         targetPos = [round(p, 9) for p in targetPos]    # 1nm precision
 
@@ -471,7 +602,7 @@ class ASC500Scanner(ASC500Base):
         #     raise
 
         # set scan origin to target position, for later fall-back when PathCtrl is turned off
-        self.setRelativeOrigin(targetPos)
+        self.setScanFieldCentre(targetPos)
 
         # calculate and set scanner velocity
         scanLength = np.sqrt(np.sum((np.array(currPos) - np.array(targetPos))**2))
@@ -498,21 +629,38 @@ class ASC500Scanner(ASC500Base):
         self.setParameter(self.getConst('ID_SPEC_PATHCTRL'), 2)  # start Path mode with two coordinates (start, target)
         time.sleep(0.05)
     
-    def setRelativeOrigin(self, position):
+    def getScanFieldCentre(self):
         """
-        This sets the scanner origin relative to the voltage origin.
+        This retrieves the scan field centre relative to the voltage origin in [m].
+        
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        position : list
+            [xPos, yPos] Positions of scan field centre in [m].
+        """
+        xPos = self.getParameter(self.getConst('ID_SCAN_OFFSET_X'))*1e-11
+        yPos = self.getParameter(self.getConst('ID_SCAN_OFFSET_Y'))*1e-11
+        return position
+
+    def setScanFieldCentre(self, position):
+        """
+        This sets the scan field centre relative to the voltage origin in [m].
         
         Parameters
         ----------
         position : list
-            [xPos, yPos] Positions of relative origin in [m].
+            [xPos, yPos] Positions of scan field centre in [m].
         
         Returns
         -------
         None.
         """
-        self.setParameter(self.getConst('ID_SCAN_OFFSET_X'), pos[0]*1e11)
-        self.setParameter(self.getConst('ID_SCAN_OFFSET_Y'), pos[1]*1e11)
+        self.setParameter(self.getConst('ID_SCAN_OFFSET_X'), position[0]*1e11)
+        self.setParameter(self.getConst('ID_SCAN_OFFSET_Y'), position[1]*1e11)
     
     def getPositioningSpeed(self):
         """
@@ -543,6 +691,484 @@ class ASC500Scanner(ASC500Base):
         -------
         """
         self.setParameter(self.getConst('ID_SCAN_PSPEED'), speed*1e9)
+
+    def getAccelerationMax(self):
+        """
+        This function retrieves the currently set maximum acceleration of the XY scanner in [m/s^2]
+        
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        acceleration : float
+            Acceleration in [m/s^2]
+        """
+        acceleration = self.getParameter(self.getConst('ID_SCAN_ACCEL'))*1e-6
+        return acceleration
+
+    def setAccelerationMax(self, acceleration):
+        """
+        This function sets the maximum acceleration of the XY scanner in [m/s^2]
+        
+        Parameters
+        ----------
+        acceleration : float
+            Maximum acceleration in [m/s^2]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_SCAN_ACCEL'), acceleration*1e6)
+
+    def getAccelerationShare(self):
+        """
+        This function retrieves the currently set Scanner share of accel distance outside scanrange [%]
+        
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        accelShare : float
+            Scanner share of accel distance outside scanrange [%]
+        """
+        accelShare = self.getParameter(self.getConst('ID_SCAN_ACCEL_PRC'))
+        return accelShare
+
+    def setAccelerationShare(self, accelShare):
+        """
+        This function sets the Scanner share of accel distance outside scanrange [%]
+        
+        Parameters
+        ----------
+        accelShare : float
+            Scanner share of accel distance outside scanrange [%]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_SCAN_ACCEL_PRC'), accelShare)
+
+    def getCLUseSensorPosition(self):
+        """
+        This function retrieves if the use of sensor position for closed loop is set.
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        use : int
+            [0, 1] use sensor position [off/on]
+        """
+        use = self.getParameter(self.getConst('ID_CL_USESENPOS'))
+        return use
+
+    def setCLUseSensorPosition(self, use):
+        """
+        This function sets the use of sensor position for closed loop.
+        
+        Parameters
+        ----------
+        use : int
+            [0, 1] use sensor position [off/on]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_CL_USESENPOS'), use)
+    
+    def clearSaturationError(self):
+        """
+        This function clears the closed loop saturation error.
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        None.
+        """
+        self.sendScannerCommand(self.getConst('ID_CL_RESTORE'))
+    
+    def getCLSaturationStatus(self):
+        """
+        This function retrievs the closed loop saturation status.
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        status : int
+            Scanner saturation; 1=left, 2=right, 4=top, 8=bottom
+        """
+        status = self.getParameter(self.getConst('ID_CL_SATSTATUS'))
+        return status
+    
+    def getDualLineON(self):
+        """
+        This function retrieves [0,1], if the dual line mode is set [off/on].
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        state : int
+            [0, 1] dual line mode [off/on]
+        """
+        state = self.getParameter(self.getConst('ID_SCAN_DUALLINE'))
+        return state
+    
+    def setDualLineON(self, state):
+        """
+        This function sets the dual line mode [off/on].
+        
+        Parameters
+        ----------
+        state : int
+            [0, 1] dual line mode [off/on]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_SCAN_DUALLINE'), state)
+    
+    def getDualLineFeedback(self):
+        """
+        This function retrieves [0,1], the type of feedback for the dual line mode [feedback/1st line profile].
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        feedback : int
+            [0, 1] dual line mode feedback [feedback/1st line profile]
+        """
+        feedback = self.getParameter(self.getConst('ID_REG_MFM_EN'))
+        return feedback
+    
+    def setDualLineFeedback(self, feedback):
+        """
+        This function sets the dual line mode feedback type [feedback/1st line profile].
+        
+        Parameters
+        ----------
+        feedback : int
+            [0, 1] dual line mode feedback [feedback/1st line profile]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_REG_MFM_EN'), feedback)
+
+    def getDualLineLiftOffset(self):
+        """
+        This function retrieves the lift offset set for the dual line mode in [m].
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        offset : float
+            Dual line mode lift offset in [m]
+        """
+        offset = self.getParameter(self.getConst('ID_REG_MFM_OFF_M'))*1e-11
+        return offset
+    
+    def setDualLineLiftOffset(self, offset):
+        """
+        This function sets the lift offset for the dual line mode in [m].
+        
+        Parameters
+        ----------
+        offset : float
+            Dual line mode lift offset in [m]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_REG_MFM_OFF_M'), offset*1e11)
+    
+    def getDualLineLiftSlewRate(self):
+        """
+        This function retrieves the lift slew rate set for the dual line mode in [m/s].
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        slewrate : float
+            Dual line mode lift slew rate in [m/s]
+        """
+        slewrate = self.getParameter(self.getConst('ID_REG_MFM_SLEW_M'))*1e-12
+        return slewrate
+    
+    def setDualLineLiftSlewRate(self, slewrate):
+        """
+        This function sets the lift slew rate for the dual line mode in [m/s].
+        
+        Parameters
+        ----------
+        slewrate : float
+            Dual line mode lift slew rate in [m/s]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_REG_MFM_SLEW_M'), slewrate*1e12)
+    
+    def getDualLineWaitTime(self):
+        """
+        This function retrieves the wait time set for the dual line mode in [s].
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        waittime : float
+            Dual line mode wait time in [s]
+        """
+        waittime = self.getParameter(self.getConst('ID_DUALLINE_WAIT'))*1e-3
+        return waittime
+    
+    def setDualLineWaitTime(self, waittime):
+        """
+        This function sets the wait time for the dual line mode in [s].
+        
+        Parameters
+        ----------
+        waittime : float
+            Dual line mode wait time in [s]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_DUALLINE_WAIT'), waittime*1e3)
+    
+    def getDualLineAlternativeSetPointEnable(self):
+        """
+        This function retrieves if an alternative setpoint for the dual line mode is enabled.
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        enabled : int
+            [0, 1] Alternative setpoint [disabled/enabled]
+        """
+        enabled = self.getParameter(self.getConst('ID_DUALLINE_SP_EN'))
+        return enabled
+
+    def setDualLineAlternativeSetPointEnable(self, enable):
+        """
+        This function [disabled/enabled] the alternative setpoint for the dual line mode.
+        
+        Parameters
+        ----------
+        enable : int
+            [0, 1] Alternative setpoint [disabled/enabled]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_DUALLINE_SP_EN'), enable)
+    
+    def getDualLineAlternativeSetPointValue(self):
+        """
+        This function retrieves the currently set alternative setpoint for the dual line mode.
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        setpoint : int
+            Alternative setpoint
+        """
+        setpoint = self.getParameter(self.getConst('ID_DUALLINE_SP_DISP'))
+        return setpoint
+    
+    def getDualLineAlternativeSetPointValue(self, setpoint):
+        """
+        This function sets the alternative setpoint for the dual line mode.
+        
+        Parameters
+        ----------
+        setpoint : int
+            Alternative setpoint
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_DUALLINE_SP_DISP'), setpoint)
+    
+    def getDualLineDACEnabled(self, DACOutput):
+        """
+        This function retrieves if an alternative DAC output for the dual line mode is enabled.
+        
+        Parameters
+        ----------
+        DACOutput : int
+            DAC Output number
+
+        Returns
+        -------
+        enabled : int
+            [0, 1] Alternative DAC output [disabled/enabled]
+        """
+        enabled = self.getParameter(self.getConst('ID_DUALLINE_DAC_EN'), DACOutput)
+        return enabled
+    
+    def setDualLineDACEnabled(self, DACOutput, enable):
+        """
+        This function [disabled/enabled] the alternative DAC output for the dual line mode.
+        
+        Parameters
+        ----------
+        DACOutput : int
+            DAC Output number
+        enable : int
+            [0, 1] Alternative DAC output [disabled/enabled]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_DUALLINE_DAC_EN'), enable, DACOutput)
+    
+    def getDualLineDACValue(self, DACOutput):
+        """
+        This function retrieves the value of the alternative DAC output for the dual line.
+        
+        Parameters
+        ----------
+        DACOutput : int
+            DAC Output number
+
+        Returns
+        -------
+        output : float
+            alternative DAC output value in [V]
+        """
+        output = self.getParameter(self.getConst('ID_DUALLINE_DAC'), DACOutput)*305.2*1e-6
+        return output
+    
+    def setDualLineDACValue(self, DACOutput, output):
+        """
+        This function sets the value of the alternative DAC output for the dual line.
+        
+        Parameters
+        ----------
+        DACOutput : int
+            DAC Output number
+        output : float
+            alternative DAC output value in [V]
+
+        Returns
+        -------
+        """
+        self.setParameter(self.getConst('ID_DUALLINE_DAC'), output/305.2*1e6, DACOutput)
+
+
+
+
+
+    def getDualLineFrequencyEnabled(self):
+        """
+        This function retrieves if an alternative excitation frequency for the dual line mode is enabled.
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        enabled : int
+            [0, 1] Alternative excitation frequency [disabled/enabled]
+        """
+        enabled = self.getParameter(self.getConst('ID_DUALLINE_FEXC_EN'))
+        return enabled
+    
+    def setDualLineFrequency(self, enable):
+        """
+        This function [disabled/enabled] the alternative excitation frequency for the dual line mode.
+        
+        Parameters
+        ----------
+        enable : int
+            [0, 1] Alternative excitation frequency [disabled/enabled]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_DUALLINE_FEXC_EN'), enable)
+    
+    def getDualLineFrequency(self):
+        """
+        This function retrieves the value of the alternative excitation frequency for the dual line.
+        
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        frequency : float
+            alternative excitation frequency value in [Hz]
+        """
+        frequency = self.getParameter(self.getConst('ID_DUALLINE_FEXC'))*1e-3
+        return frequency
+    
+    def setDualLineFrequency(self, frequency):
+        """
+        This function sets the value of the alternative excitation frequency for the dual line.
+        
+        Parameters
+        ----------
+        frequency : float
+            alternative excitation frequency value in [Hz]
+
+        Returns
+        -------
+        """
+        self.setParameter(self.getConst('ID_DUALLINE_FEXC'), frequency*1e3)
+
+
+
+
+
+
 
     def pollDataFull(self, frameSize, chn):
         """
@@ -635,6 +1261,37 @@ class ASC500Scanner(ASC500Base):
         """
         self.setParameter(self.getConst('ID_SCAN_PIXEL'), pixelsize*1e11)
 
+    def getScanFieldRotation(self):
+        """
+        This function retrieves the currently set rotation of the scan field in [deg]
+
+        Parameters
+        ----------
+        None.
+
+        Returns
+        -------
+        rotation : float
+            Currently set scan field rotation in [deg]
+        """
+        rotation = self.getParameter(self.getConst('ID_SCAN_ROTATION')) *65536/360
+        return rotation
+    
+    def setScanFieldRotation(self, rotation):
+        """
+        This function sets the rotation of the scan field in [deg]
+
+        Parameters
+        ----------
+        rotation : float
+            Scan field rotation in [deg]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_SCAN_ROTATION'), rotation*360/65536)
+        
 
     def getNumberOfColumns(self):
         """

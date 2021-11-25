@@ -82,7 +82,7 @@ class ASC500Limits(ASC500Base):
             actual T-dependent voltage in [V]
         """
         vLimAct =self.getParameter(self.getConst('ID_PIEZO_ACTVOLT_HY')*305.2*1e-6)
-        return yLimAct
+        return vLimAct
 
     def getZActualVoltageLimit(self):
         """
@@ -229,7 +229,7 @@ class ASC500Limits(ASC500Base):
         tLimAct : float
             actual T-dependent deflection limit in [m]
         """
-        tLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTRG_X')*1e-11)
+        tLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTRG_Y')*1e-11)
         return tLimAct
     
     def getZActualTravelLimit(self):
@@ -255,7 +255,7 @@ class ASC500Limits(ASC500Base):
         Parameters
         ----------
         tLim : list
-            [maxRT, maxLT] in [V]
+            [maxRT, maxLT] in [m]
 
         Returns
         -------
@@ -272,7 +272,7 @@ class ASC500Limits(ASC500Base):
         Parameters
         ----------
         tLim : list
-            [maxRT, maxLT] in [V]
+            [maxRT, maxLT] in [m]
 
         Returns
         -------
@@ -289,7 +289,7 @@ class ASC500Limits(ASC500Base):
         Parameters
         ----------
         tLim : list
-            [maxRT, maxLT] in [V]
+            [maxRT, maxLT] in [m]
 
         Returns
         -------
@@ -298,6 +298,67 @@ class ASC500Limits(ASC500Base):
         maxTravel = [(t*1e12) for t in tLim]
         self.setParameter(self.getConst('ID_REG_ZABS_LIMM_A'), maxTravel[0], index=0)
         self.setParameter(self.getConst('ID_REG_ZABS_LIMM_A'), maxTravel[1], index=1)
+
+    def getTemperatureLimits(self):
+        """
+        Retrieves the temperature limits set for room and low temperature as a List [RT, LT] in [K]
+        
+        Parameters
+        ----------
+
+        Returns
+        -------
+        tempLim : list
+            [RT, LT] in [K]
+        None.
+        """
+        tempLim = self.setParameter(self.getConst('ID_PIEZO_T_LIM'))*1e-3
+        return tempLim
+
+    def setTemperatureLimits(self, tempLim):
+        """
+        Sets the temperature limits for room and low temperature, input is given as a List [RT, LT] in [K]
+        
+        Parameters
+        ----------
+        tempLim : list
+            [RT, LT] in [K]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_PIEZO_T_LIM'), tempLim*1e3)
     
+    def getTemperature(self):
+        """
+        Retrieves the currently set temperature value for interpolation.
+        
+        Parameters
+        ----------
+
+        Returns
+        -------
+        temp : float
+            Temperature in [K]
+        None.
+        """
+        temp = self.getParameter(self.getConst('ID_PIEZO_TEMP'))*1e-3
+        return temp
+    
+    def setTemperature(self, temp):
+        """
+        Sets the temperature value for interpolation.
+        
+        Parameters
+        ----------
+        temp : float
+            Temperature in [K]
+
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_PIEZO_TEMP'), temp*1e3)
     
     
