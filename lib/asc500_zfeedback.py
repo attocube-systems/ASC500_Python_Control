@@ -432,11 +432,11 @@ class ASC500ZFeedback(ASC500Base):
         raw_val = self.getParameter(self.getConst('ID_REG_SETP_DISP'))
         offset = self.getParameter(self.getConst('ID_GUI_OFFS_ZREG'))
         scale = self.getParameter(self.getConst('ID_GUI_SCAL_ZREG'))
-        unit = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
+        unit_raw = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
+        unit = self.convertUnitToFactor(unit_raw)
+        setpoint = (raw_val + offset)/scale * unit
         
-        setpoint = (raw_val + offset)/scale #* unit
-        
-        return setpoint*1e-3
+        return setpoint
 
 
     def setZFeedbackSetpoint(self, setpoint):
@@ -454,8 +454,27 @@ class ASC500ZFeedback(ASC500Base):
         """
         offset = self.getParameter(self.getConst('ID_GUI_OFFS_ZREG'))
         scale = self.getParameter(self.getConst('ID_GUI_SCAL_ZREG'))
-        unit = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
+        unit_raw = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
+        unit = self.convertUnitToFactor(unit_raw)
+        raw_val = (setpoint * scale)/unit # - offset
         
-        raw_val = (setpoint * scale) #/unit - offset
+        self.setParameter(self.getConst('ID_REG_SETP_DISP'), raw_val)
+    
+    def getZFeedbackSetpointUnit(self):
+        """
+        This function retrieves the currently set unit of the Z feedback setpoint.
+
+        Parameters
+        ----------
+        None
         
-        self.setParameter(self.getConst('ID_REG_SETP_DISP'), raw_val*1e3)
+        Returns
+        -------
+        unit : str
+            Setpoint unit (e.g. 'mV')
+        """
+        unit_raw = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
+        unit = self.printUnit(unit_raw)
+        return unit
+    
+    

@@ -59,50 +59,6 @@ class ASC500Scanner(ASC500Base):
         state = self.getParameter(self.getConst('ID_SCAN_STATUS'))
         return ScannerState(state)
     
-    @staticmethod
-    def unitConversion(type, value, reverse=False):
-        """Takes care of unit conversion from SI-unit to scanner unit (and vice-versa).
-           type [str]: distinguishes the type of the input number
-           value [float]: number that is to be converted
-           reverse [bool]: if true, conversion is scanner-unit to SI-unit"""
-        convFactor = 1
-        if type == 'Voltage':
-            # scanner unit is 350 uV: V -> 350uV
-            convFactor = 1/305.2*1e6
-        elif type == 'Position':
-            # position unit is 10pm: m -> 10pm
-            convFactor = 1e11
-        elif type == 'Temperature':
-            # scanner unit is mK: K -> mK
-            convFactor = 1e3
-        elif type == 'Velocity':
-            # scanner unit is nm/s: m?s -> nm/s
-            convFactor = 1e9
-        elif type == 'Frequency':
-            # ASC unit is mHz: Hz -> mHz
-            convFactor = 1e3
-        elif type == 'Proportional':
-            # Proportional part of PI, in units of 1e-6: 1 -> 1e-6
-            convFactor = 1e6
-        elif type == 'TF Phase':
-            # scanner unit is 83.82 ndeg: 1 deg -> 83.82 ndeg
-            convFactor = 1/83.82*1e9
-        elif type == 'TF Time':
-            # scanner unit is 20ns: 1 s -> 20ns
-            convFactor = 1/20*1e9
-        elif type == 'TF exc Voltage':
-            # scanner unit is 19.074 uV: 1 V -> 19.074 uV 
-            convFactor = 1/19.074*1e6
-        elif type == 'TF det Voltage':
-            # scanner unit is 305.2 uV: 1 V -> 305.2 uV
-            convFactor = 1/305.2*1e6
-        elif type == 'AAP Speed':
-            # scanner unit is 976.6 uV/s: 1 V -> 976.6 uV
-            convFactor = 1/976.6*1e6
-        if reverse:
-            return value/convFactor
-        return int(value*convFactor)
-    
     def configureScanner(self, xOffset, yOffset, pxSize, columns, lines, sampTime):
         """
         Configures the scanner to perform a scan according to the parameters

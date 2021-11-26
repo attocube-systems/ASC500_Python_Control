@@ -752,6 +752,260 @@ class ASC500AFM(ASC500Base):
         """
         self.setParameter(self.getConst('ID_AFM_R_FRQ_ACTVAL'), channel)
 
+    def getAFMLockInAmplitude(self):
+        """
+        This function retrieves the AFM lockin modulation amplitude in [V]
+
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        amplitude : float
+            Modulation amplitude in [V]
+        """
+        amplitude = self.getParameter(self.getConst('ID_AFM_M_AMP'))*305.2*1e-6
+        return amplitude
+    
+    def setAFMLockInAmplitude(self, amplitude):
+        """
+        This function sets the AFM lockin modulation amplitude in [V]
+
+        Parameters
+        ----------
+        amplitude : float
+            Modulation amplitude in [V]
+        
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_AFM_M_AMP'), amplitude/305.2*1e6)
+    
+    def getAFMLockInFrequency(self):
+        """
+        This function retrieves the AFM lockin modulation frequency in [Hz]
+
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        frequency : float
+            Modulation frequency in [Hz]
+        """
+        frequency = self.getParameter(self.getConst('ID_AFM_M_FREQ'))*1e-3
+        return frequency
+    
+    def setAFMLockInFrequency(self, frequency):
+        """
+        This function sets the AFM lockin modulation frequency in [Hz]
+
+        Parameters
+        ----------
+        frequency : float
+            Modulation frequency in [Hz]
+        
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_AFM_M_FREQ'), frequency*1e3)
+
+    def getAFMLockInPhaseShift(self):
+        """
+        This function retrieves the AFM lockin phase shift in [rad]
+
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        phaseshift : float
+            Phase shift in [rad]
+        """
+        phaseshift = self.getParameter(self.getConst('ID_AFM_M_SHIFT'))*1.463*1e-9
+        return phaseshift
+    
+    def setAFMLockInPhaseShift(self, phaseshift):
+        """
+        This function sets the AFM lockin phase shift in [rad]
+
+        Parameters
+        ----------
+        phaseshift : float
+            Phase shift in [rad]
+        
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_AFM_M_SHIFT'), phaseshift/1.463*1e9)
+
+    def getAFMLockInOutputConnect(self):
+        """
+        This function retrieves the output (0=Off, 1=DAC1, 2=DAC2, 3=DAC1+DAC2) connected to the lockin.
+
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        output : int
+            output connected to the lockin.
+            (0=Off, 1=DAC1, 2=DAC2, 3=DAC1+DAC2)
+        """
+        output = self.getParameter(self.getConst('ID_AFM_M_DA'))
+        return output
+    
+    def setAFMLockInOutputConnect(self, output):
+        """
+        This function sets the output (0=Off, 1=DAC1, 2=DAC2, 3=DAC1+DAC2) to connected to the lockin.
+
+        Parameters
+        ----------
+        output : int
+            output to connected to the lockin.
+            (0=Off, 1=DAC1, 2=DAC2, 3=DAC1+DAC2)
+        
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_AFM_M_DA'), output)
+
+    def getAFMLockInInputConnect(self):
+        """
+        This function retrieves the input (one of CHANADC_...) connected to the lockin.
+
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        input : int
+            input connected to the lockin.
+
+            One of CHANADC_...:
+
+                0  - CHANADC_ADC_MIN     
+                5  - CHANADC_ADC_MAX     
+                7  - CHANADC_AFMAEXC     
+                8  - CHANADC_AFMFEXC     
+                9  - CHANADC_ZOUT        
+                12 - CHANADC_AFMSIGNAL   
+                13 - CHANADC_AFMAMPL     
+                14 - CHANADC_AFMPHASE    
+                16 - CHANADC_AFMMAMPL    
+                17 - CHANADC_AFMMPHASE   
+                18 - CHANADC_ZOUTINV     
+                29 - CHANADC_CROSSLINK_1 
+                30 - CHANADC_CROSSLINK_2 
+                31 - CHANADC_SENSOR_POS_X
+                32 - CHANADC_SENSOR_POS_Y
+        """
+        input = self.getParameter(self.getConst('ID_AFM_M_AD'))
+        return input
+    
+    def setAFMLockInInputConnect(self, input):
+        """
+        This function sets the input (one of CHANADC_...) to connected to the lockin.
+
+        Parameters
+        ----------
+        input : int
+            input to connected to the lockin.
+
+            One of CHANADC_...:
+
+                0  - CHANADC_ADC_MIN     
+                5  - CHANADC_ADC_MAX     
+                7  - CHANADC_AFMAEXC     
+                8  - CHANADC_AFMFEXC     
+                9  - CHANADC_ZOUT        
+                12 - CHANADC_AFMSIGNAL   
+                13 - CHANADC_AFMAMPL     
+                14 - CHANADC_AFMPHASE    
+                16 - CHANADC_AFMMAMPL    
+                17 - CHANADC_AFMMPHASE   
+                18 - CHANADC_ZOUTINV     
+                29 - CHANADC_CROSSLINK_1 
+                30 - CHANADC_CROSSLINK_2 
+                31 - CHANADC_SENSOR_POS_X
+                32 - CHANADC_SENSOR_POS_Y
+        
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_AFM_M_AD'), input)
+
+    def getAFMLockInSensitivityRange(self):
+        """
+        This function retrieves the AFM lockin sensetivity range in [V]
+
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        range : float
+            Sensetivity range in [V]
+        """
+        range = self.getParameter(self.getConst('ID_AFM_M_DEMAMP'))*305.2*1e-6
+        return range
+    
+    def setAFMLockInSensitivityRange(self, range):
+        """
+        This function sets the AFM lockin sensetivity range in [V]
+
+        Parameters
+        ----------
+        range : float
+            Sensetivity range in [V]
+        
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_AFM_M_DEMAMP'), range/305.2*1e6)
+
+    def getAFMLockInSamplingTime(self):
+        """
+        This function retrieves the AFM lockin sampling time in [s]
+
+        Parameters
+        ----------
+        None.
+        
+        Returns
+        -------
+        sampT : float
+            Sampling time in [s]
+        """
+        sampT = self.getParameter(self.getConst('ID_AFM_M_SMPLTM'))*20*1e-9
+        return sampT
+    
+    def setAFMLockInSamplingTime(self, sampT):
+        """
+        This function sets the AFM lockin sampling time in [s]
+
+        Parameters
+        ----------
+        sampT : float
+            Sampling time in [s]
+        
+        Returns
+        -------
+        None.
+        """
+        self.setParameter(self.getConst('ID_AFM_M_SMPLTM'), sampT/20*1e9)
 
 #------------------------------------------
     def getAFMAmplitudeSetpoint(self):
@@ -768,9 +1022,10 @@ class ASC500AFM(ASC500Base):
             Current amplitude setpoint [V]
         """
         rawvalue = self.getParameter(self.getConst('ID_AFM_R_AMP_DISP'))
-        unit = self.getParameter(self.getConst('ID_GUI_UNIT_AREG'))
+        unit_raw = self.getParameter(self.getConst('ID_GUI_UNIT_AREG'))
+        unit = self.convertUnitToFactor(unit_raw)
         setpoint = rawvalue*unit
-        return rawvalue*1e-3
+        return setpoint
 
     def setAFMAmplitudeSetpoint(self, setpoint):
         """
@@ -785,9 +1040,11 @@ class ASC500AFM(ASC500Base):
         -------
         None.
         """
-        unit = self.getParameter(self.getConst('ID_GUI_UNIT_AREG'))
+        unit_raw = self.getParameter(self.getConst('ID_GUI_UNIT_AREG'))
+        unit = self.convertUnitToFactor(unit_raw)
+        setpoint = setpoint/unit
         
-        self.setParameter(self.getConst('ID_AFM_R_AMP_DISP'), setpoint*1e3)
+        self.setParameter(self.getConst('ID_AFM_R_AMP_DISP'), setpoint)
 
     def getAFMFrequencySetpoint(self):
         """
@@ -803,7 +1060,8 @@ class ASC500AFM(ASC500Base):
             Current frequency setpoint [V]
         """
         rawvalue = self.getParameter(self.getConst('ID_AFM_R_FRQ_DISP'))
-        unit = self.getParameter(self.getConst('ID_GUI_UNIT_PREG'))
+        unit_raw = self.getParameter(self.getConst('ID_GUI_UNIT_PREG'))
+        unit = self.convertUnitToFactor(unit_raw)
         setpoint = rawvalue*unit
         return setpoint
 
@@ -820,7 +1078,8 @@ class ASC500AFM(ASC500Base):
         -------
         None.
         """
-        unit = self.getParameter(self.getConst('ID_GUI_UNIT_PREG'))
+        unit_raw = self.getParameter(self.getConst('ID_GUI_UNIT_PREG'))
+        unit = self.convertUnitToFactor(unit_raw)
         rawvalue = setpoint/unit
         self.setParameter(self.getConst('ID_AFM_R_FRQ_DISP'), rawvalue)
     

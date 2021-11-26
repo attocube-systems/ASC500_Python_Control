@@ -149,13 +149,17 @@ class ASC500AutoApproach(ASC500Base):
         threshold : float
             Threshold value in [V]
         """
-        unit = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
+        unit_raw = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
         scale = self.getParameter(self.getConst('ID_GUI_SCAL_ZREG'))
         offset = self.getParameter(self.getConst('ID_GUI_OFFS_ZREG'))
         raw_val = self.getParameter(self.getConst('ID_AAP_THRESHOLD'))
-        threshold = (raw_val + offset) / scale #* unit
+        unit = self.convertUnitToFactor(unit_raw)
+
+
+
+        threshold = (raw_val + offset) / scale * unit
         
-        return threshold*1e-3
+        return threshold
 
     def setAApThreshold(self, threshold):
         """
@@ -170,12 +174,13 @@ class ASC500AutoApproach(ASC500Base):
         -------
         None.
         """
-        unit = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
+        unit_raw = self.getParameter(self.getConst('ID_GUI_UNIT_ZREG'))
         scale = self.getParameter(self.getConst('ID_GUI_SCAL_ZREG'))
         offset = self.getParameter(self.getConst('ID_GUI_OFFS_ZREG'))
-        raw_val = (threshold * scale) # * unit) - offset
+        unit = self.convertUnitToFactor(unit_raw)
+        raw_val = (threshold * scale) * unit #) - offset
         
-        self.setParameter(self.getConst('ID_AAP_THRESHOLD'), raw_val*1e3)
+        self.setParameter(self.getConst('ID_AAP_THRESHOLD'), raw_val)
 
     def getAApStopCondition(self):
         """

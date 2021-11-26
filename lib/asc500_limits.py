@@ -361,4 +361,62 @@ class ASC500Limits(ASC500Base):
         """
         self.setParameter(self.getConst('ID_PIEZO_TEMP'), temp*1e3)
     
+
+    def getDACLimits(self, channel):
+        """
+        This function retrieves the output limits for the given DAC output.
+        
+        Parameters
+        ----------
+        channel : int
+            [0..5] DAC-Channel number
+
+        Returns
+        -------
+        limits : list
+            [limitRT, limitLT] DAC output limits
+        None.
+        """
+        limitRT = self.getParameter(self.getConst('ID_GENDAC_LIMIT_RT'), channel)*1e-6
+        limitLT = self.getParameter(self.getConst('ID_GENDAC_LIMIT_LT'), channel)*1e-6
+        limits = [limitRT, limitLT]
+        return limits
+    
+    def setDACLimits(self, channel, limits):
+        """
+        This function sets the output limits for the given DAC output.
+        
+        Parameters
+        ----------
+        channel : int
+            [0..5] DAC-Channel number
+
+        limits : list
+            [limitRT, limitLT] DAC output limits
+
+        Returns
+        -------
+        None.
+        """
+        [limitRT, limitLT] = limits
+        self.setParameter(self.getConst('ID_GENDAC_LIMIT_RT'), limitRT*1e6, channel)
+        self.setParameter(self.getConst('ID_GENDAC_LIMIT_LT'), limitLT*1e6, channel)
+    
+    def getDACLimitsCT(self, channel):
+        """
+        This function retrieves the output limit at the currently set temperature for the given DAC output.
+        
+        Parameters
+        ----------
+        channel : int
+            [0..5] DAC-Channel number
+
+        Returns
+        -------
+        limitCT : list
+            DAC output limits at current temp
+        None.
+        """
+        limitCT = self.getParameter(self.getConst('ID_GENDAC_LIMIT_CT'), channel)*1e-6
+        return limitCT
     
