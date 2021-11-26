@@ -65,7 +65,7 @@ class ASC500Limits(ASC500Base):
         vLimAct : float
             Actual T-dependent voltage in [V]
         """
-        vLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTVOLT_HX')*305.2*1e-6)
+        vLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTVOLT_HX'))*305.2*1e-6
         return vLimAct
 
     def getYActualVoltageLimit(self):
@@ -81,7 +81,7 @@ class ASC500Limits(ASC500Base):
         vLimAct : float
             actual T-dependent voltage in [V]
         """
-        vLimAct =self.getParameter(self.getConst('ID_PIEZO_ACTVOLT_HY')*305.2*1e-6)
+        vLimAct =self.getParameter(self.getConst('ID_PIEZO_ACTVOLT_HY'))*305.2*1e-6
         return vLimAct
 
     def getZActualVoltageLimit(self):
@@ -97,7 +97,7 @@ class ASC500Limits(ASC500Base):
         vLimAct : float
             actual T-dependent voltage in [V]
         """
-        vLimAct = self.getParameter(self.getConst('ID_REG_ZABS_LIM')*19.07*1e-6)
+        vLimAct = self.getParameter(self.getConst('ID_REG_ZABS_LIM'))*19.07*1e-6
         return vLimAct
 
     def setXVoltageLimit(self, vLim):
@@ -213,7 +213,7 @@ class ASC500Limits(ASC500Base):
         tLimAct : float
             actual T-dependent deflection limit in [m]
         """
-        tLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTRG_X')*1e-11)
+        tLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTRG_X'))*1e-11
         return tLimAct
 
     def getYActualTravelLimit(self):
@@ -229,7 +229,7 @@ class ASC500Limits(ASC500Base):
         tLimAct : float
             actual T-dependent deflection limit in [m]
         """
-        tLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTRG_Y')*1e-11)
+        tLimAct = self.getParameter(self.getConst('ID_PIEZO_ACTRG_Y'))*1e-11
         return tLimAct
     
     def getZActualTravelLimit(self):
@@ -245,7 +245,7 @@ class ASC500Limits(ASC500Base):
         tLimAct : float
             actual T-dependent deflection limit in [m]
         """
-        tLimAct = self.getParameter(self.getConst('ID_REG_ZABS_LIMM')*1e-12)
+        tLimAct = self.getParameter(self.getConst('ID_REG_ZABS_LIMM'))*1e-12
         return tLimAct
 
     def setXTravelLimit(self, tLim):
@@ -299,6 +299,40 @@ class ASC500Limits(ASC500Base):
         self.setParameter(self.getConst('ID_REG_ZABS_LIMM_A'), maxTravel[0], index=0)
         self.setParameter(self.getConst('ID_REG_ZABS_LIMM_A'), maxTravel[1], index=1)
 
+    def getZFeedbackLimits(self):
+        """
+        This function retrieves the Z feedback limits.
+
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        limits : list
+            [limMin, limMax] Minimum and maximum feedback limits in [m]
+        """
+        limMin = self.getParameter(self.getConst('ID_REG_LIM_MINUSR_M'))*1e-12
+        limMax = self.getParameter(self.getConst('ID_REG_LIM_MAXUSR_M'))*1e-12
+        limits = [limMin, limMax]
+        return limits
+    
+    def setZFeedbackLimits(self, limits):
+        """
+        This function sets the Z feedback limits.
+
+        Parameters
+        ----------
+        limits : list
+            [limMin, limMax] Minimum and Maximum feedback limits in [m]
+
+        Returns
+        -------
+        None
+        """
+        self.setParameter(self.getConst('ID_REG_LIM_MINUSR_M'), limits[0]*1e12)
+        self.setParameter(self.getConst('ID_REG_LIM_MAXUSR_M'), limits[1]*1e12)
+    
     def getTemperatureLimits(self):
         """
         Retrieves the temperature limits set for room and low temperature as a List [RT, LT] in [K]

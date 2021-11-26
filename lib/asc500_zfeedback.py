@@ -97,40 +97,6 @@ class ASC500ZFeedback(ASC500Base):
         """
         self.setParameter(self.getConst('ID_REG_INPUT'), channel)
 
-    def getZFeedbackLimits(self):
-        """
-        This function retrieves the Z feedback limits.
-
-        Parameters
-        ----------
-        None
-        
-        Returns
-        -------
-        limits : list
-            [limMin, limMax] Minimum and maximum feedback limits in [m]
-        """
-        limMin = self.getParameter(self.getConst('ID_REG_LIM_MINUSR_M'))*1e-12
-        limMax = self.getParameter(self.getConst('ID_REG_LIM_MAXUSR_M'))*1e-12
-        limits = [limMin, limMax]
-        return limits
-    
-    def setZFeedbackLimits(self, limits):
-        """
-        This function sets the Z feedback limits.
-
-        Parameters
-        ----------
-        limits : list
-            [limMin, limMax] Minimum and Maximum feedback limits in [m]
-
-        Returns
-        -------
-        None
-        """
-        self.setParameter(self.getConst('ID_REG_LIM_MINUSR_M'), limits[0]*1e12)
-        self.setParameter(self.getConst('ID_REG_LIM_MAXUSR_M'), limits[1]*1e12)
-
     def getZFeedbackI(self):
         """
         This function retrieves the Z feedback controller integral part I [Hz].
