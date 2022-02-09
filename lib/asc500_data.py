@@ -16,7 +16,7 @@ class ASC500Data(ASC500Base):
         ----------
         channel : int
             [0..5] channel to retrieve the gain for
-        
+
         Returns
         -------
         gain : float
@@ -24,7 +24,7 @@ class ASC500Data(ASC500Base):
         """
         gain = self.getParameter(self.getConst('ID_ADC_ECAL_FACT'), index=channel)/1e-6
         return gain
-    
+
     def setChannelGain(self, channel, gain):
         """
         This function sets the gain for the given data source.
@@ -35,13 +35,13 @@ class ASC500Data(ASC500Base):
             [0..5] channel to retrieve the gain for
         gain : float
             Currently set gain [output_unit/V]
-        
+
         Returns
         -------
         None.
         """
         self.setParameter(self.getConst('ID_ADC_ECAL_FACT'), gain, channel)
-    
+
     def getChannelOffset(self, channel):
         """
         This function retrieves the offset set for the given data source.
@@ -50,7 +50,7 @@ class ASC500Data(ASC500Base):
         ----------
         channel : int
             [0..5] channel to retrieve the offset for
-        
+
         Returns
         -------
         offset : float
@@ -58,7 +58,7 @@ class ASC500Data(ASC500Base):
         """
         offset = self.getParameter(self.getConst('ID_ADC_ECAL_OFFS'), index=channel)*1e-6
         return offset
-    
+
     def setChannelOffset(self, channel, offset):
         """
         This function sets the offset for the given data source.
@@ -69,13 +69,13 @@ class ASC500Data(ASC500Base):
             [0..5] channel to retrieve the offset for
         offset : float
             Currently set offset [V]
-        
+
         Returns
         -------
         None.
         """
         self.setParameter(self.getConst('ID_ADC_ECAL_OFFS'), offset, channel)
-    
+
     def getChannelUnit(self, channel):
         """
         This function retrieves the unit set for the given data source (e.g. 'mV').
@@ -84,7 +84,7 @@ class ASC500Data(ASC500Base):
         ----------
         channel : int
             [0..5] channel to retrieve the unit for
-        
+
         Returns
         -------
         unit : str
@@ -93,7 +93,7 @@ class ASC500Data(ASC500Base):
         unit_raw = self.getParameter(self.getConst('ID_ADC_ECAL_UNIT'), index=channel)
         unit = self.printUnit(unit_raw)
         return unit
-    
+
     def setChannelUnit(self, channel, unit):
         """
         This function sets the unit for the given data source (e.g. 'mV').
@@ -104,14 +104,14 @@ class ASC500Data(ASC500Base):
             [0..5] channel to set the unit for
         unit : str
             Data unit (e.g. 'mV')
-        
+
         Returns
         -------
         None.
         """
         raw = self.unitToASC(unit)
         self.setParameter(self.getConst('ID_ADC_ECAL_UNIT'), raw, channel)
-    
+
     def getADCValue(self, channel):
         """
         This function retrieves the the value at the given data source.
@@ -120,7 +120,7 @@ class ASC500Data(ASC500Base):
         ----------
         channel : int
             [0..5] channel to set the unit for
-        
+
         Returns
         -------
         value : float
@@ -128,7 +128,7 @@ class ASC500Data(ASC500Base):
         """
         value = self.getParameter(self.getConst('ID_ADC_VALUE'), channel) #TODO: Check scaling: 'The ADC value itself is multiplied with 1.000.000 to provide sufficent accuracy.'
         return value
-    
+
     def getADCUnit(self, channel):
         """
         This function retrieves the unit for the value at the given data source (e.g. 'mV').
@@ -139,7 +139,7 @@ class ASC500Data(ASC500Base):
             [0..5] channel to set the unit for
         unit : str
             Data unit (e.g. 'mV')
-        
+
         Returns
         -------
         None.
@@ -147,7 +147,7 @@ class ASC500Data(ASC500Base):
         raw_unit = self.getParameter(self.getConst('ID_ADC_VAL_UNIT'), channel)
         unit = self.printUnit(raw_unit)
         return unit
-    
+
     def getADCValueBase(self, channel):
         """
         This function retrieves the value in its base units at the given data source.
@@ -156,7 +156,7 @@ class ASC500Data(ASC500Base):
         ----------
         channel : int
             [0..5] channel to set the unit for
-        
+
         Returns
         -------
         value : float
@@ -175,7 +175,7 @@ class ASC500Data(ASC500Base):
         ----------
         channel : int
             [0..5] channel to set the unit for
-        
+
         Returns
         -------
         value : float
@@ -183,7 +183,7 @@ class ASC500Data(ASC500Base):
         """
         value = self.getParameter(self.getConst('ID_DAC_VALUE'), channel)*305.19*1e-6
         return value
-    
+
     def setDACValue(self, channel, value):
         """
         This function sets the value at the given DAC output in [V].
@@ -194,7 +194,7 @@ class ASC500Data(ASC500Base):
             [0..5] channel to set the unit for
         value : float
             Value at the given data source in [V]
-        
+
         Returns
         -------
         None.
@@ -209,7 +209,7 @@ class ASC500Data(ASC500Base):
         ----------
         channel : int
             [0..5] channel to set the unit for
-        
+
         Returns
         -------
         slew : float
@@ -217,7 +217,7 @@ class ASC500Data(ASC500Base):
         """
         slew = self.getParameter(self.getConst('ID_DAC_GEN_STEP'), channel)*305.19*1e-6
         return slew
-    
+
     def setDACSlewRate(self, channel, slew):
         """
         This function retrieves the slew rate at the given DAC output in [V].
@@ -228,7 +228,7 @@ class ASC500Data(ASC500Base):
             [0..5] channel to set the unit for
         slew : float
             Slew rate at the given data source in [V]
-        
+
         Returns
         -------
         None.
@@ -312,7 +312,7 @@ class ASC500Data(ASC500Base):
                           chnCode,
                           0)
         return ret
-    
+
     def getPhysRangeX(self, meta):
         """
         Physical range X.
@@ -684,7 +684,7 @@ class ASC500Data(ASC500Base):
         self._getRotation(meta,
                           ct.byref(rotation))
         return rotation.value
-    
+
     def configureChannel(self, chn, trig, src, avg, sampT):
         """
         Configures what kind of data is sent on a specific data channel.
