@@ -8,7 +8,7 @@ import re
 import time
 import numpy as np
 import enum
-from lib.asc500_base import ASC500Base
+from .asc500_base import ASC500Base
 
 
 class ScannerState(enum.Enum):

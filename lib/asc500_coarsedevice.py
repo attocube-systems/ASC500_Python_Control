@@ -1,4 +1,4 @@
-from lib.asc500_base import ASC500Base
+from .asc500_base import ASC500Base
 
 #This class is not working with the ANC350 or AMC300
 

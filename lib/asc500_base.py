@@ -1,7 +1,7 @@
 
 import ctypes as ct
 import os
-import lib.asc500_const as asc500_const
+from .asc500_const import ASC500Const
 import time
 import numpy as np
 
@@ -105,7 +105,7 @@ class ASC500Base():
         int
             Integer of constant.
         """
-        return int(asc500_const.cc.get(symbol), base=0)
+        return int(ASC500Const.cc.get(symbol), base=0)
 
     def __init__(self, binPath, dllPath, portNr=-1):
         """

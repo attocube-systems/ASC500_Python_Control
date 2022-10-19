@@ -7,20 +7,20 @@ Created on Sun May 10 13:04:04 2020
 
 import numpy as np
 from matplotlib import pyplot as plt
-from .lib import ASC500
+from lib import ASC500
 
-binPath = "..\\Installer\\ASC500CL-V2.7.13\\"
-dllPath = "..\\64bit_lib\\ASC500CL-LIB-WIN64-V2.7.13\\daisybase\\lib\\"
+binPath = "Installer\\ASC500CL-V2.7.13\\"
+dllPath = "64bit_lib\\ASC500CL-LIB-WIN64-V2.7.13\\daisybase\\lib\\"
 
-asc500 = ASC500.Device(binPath, dllPath)
+asc500 = ASC500(binPath, dllPath)
 # asc500 = asc.ASC500Base(binPath, dllPath)
 
 asc500.base.startServer('FindSim')
 
-asc500.base.sendProfile(binPath + 'afm.ngp')
+asc500.base.sendProfile(binPath + '20221019_AFM_Akiyama.ngp')
 
 asc500.data.setDataEnable(1)
-
+asc500.base.setOutputsWaiting(1)
 sampTime = 1e-3
 average = 0
 chnNo = 0
@@ -29,7 +29,7 @@ expTime = 1e-6 # Counter exposure time in us
 
 asc500.data.configureChannel(chnNo,
                         asc500.base.getConst('CHANCONN_PERMANENT'),
-                        asc500.base.getConst('CHANADC_COUNTER'),
+                        asc500.base.getConst('CHANADC_AFMAMPL'),
                         average,
                         sampTime)
 

@@ -1,5 +1,5 @@
 from time import time
-from lib.asc500_base import ASC500Base
+from .asc500_base import ASC500Base
 
 
 class ASC500Path(ASC500Base):

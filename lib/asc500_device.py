@@ -1,18 +1,18 @@
-from lib.asc500_afm import ASC500AFM
-from lib.asc500_autoapproach import ASC500AutoApproach
-from lib.asc500_base import ASC500Base
-from lib.asc500_coarsedevice import ASC500CoarseDevice
-from lib.asc500_crosslink import ASC500Crosslink
-from lib.asc500_data import ASC500Data
-from lib.asc500_limits import ASC500Limits
-from lib.asc500_path import ASC500Path
-from lib.asc500_scanner import ASC500Scanner
-from lib.asc500_spectroscopy import ASC500Spectroscopy
-from lib.asc500_zcontrol import ASC500ZControl
-from lib.asc500_zfeedback import ASC500ZFeedback
+from .asc500_afm import ASC500AFM
+from .asc500_autoapproach import ASC500AutoApproach
+from .asc500_base import ASC500Base
+from .asc500_coarsedevice import ASC500CoarseDevice
+from .asc500_crosslink import ASC500Crosslink
+from .asc500_data import ASC500Data
+from .asc500_limits import ASC500Limits
+from .asc500_path import ASC500Path
+from .asc500_scanner import ASC500Scanner
+from .asc500_spectroscopy import ASC500Spectroscopy
+from .asc500_zcontrol import ASC500ZControl
+from .asc500_zfeedback import ASC500ZFeedback
 
 
-class Device():
+class ASC500():
     def __init__(self, binPath, dllPath, portNr=-1):
         self.afm = ASC500AFM(binPath, dllPath, portNr)
         self.aap = ASC500AutoApproach(binPath, dllPath, portNr)
