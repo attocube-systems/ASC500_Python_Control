@@ -36,9 +36,6 @@ print(asc500.data.getChannelConfig(chnNo))
 
 asc500.data.configureDataBuffering(chnNo, bufSize)
 
-asc500.data.setCounterExposureTime(expTime)
-print("Exposure time ", asc500.data.getCounterExposureTime())
-
 #%% Poll data
 
 while True:
