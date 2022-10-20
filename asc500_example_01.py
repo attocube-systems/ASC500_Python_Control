@@ -27,10 +27,10 @@ bufSize = 256
 expTime = 1e-6 # Counter exposure time in us
 
 asc500.data.configureChannel(chnNo,
-                        asc500.base.getConst('CHANCONN_PERMANENT'),
-                        asc500.base.getConst('CHANADC_COUNTER'),
-                        average,
-                        sampTime)
+                             asc500.base.getConst('CHANCONN_PERMANENT'),
+                             asc500.base.getConst('CHANADC_COUNTER'),
+                             average,
+                             sampTime)
 
 print(asc500.data.getChannelConfig(chnNo))
 
@@ -48,8 +48,8 @@ while True:
 
 out = \
 asc500.data.getDataBuffer(chnNo,
-                     0,
-                     bufSize)
+                          0,
+                          bufSize)
 
 #%% Close ASC500
 
