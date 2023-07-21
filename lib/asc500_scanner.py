@@ -282,7 +282,7 @@ class ASC500Scanner(ASC500Base):
             [coordAbsX, coordAbsY] scanners new absolute coordinate system origin in [m].
         """
         coordAbsX = self.getParameter(self.getConst('ID_SCAN_COORD_MOVE_X'))*1e-11
-        coordAbsY = self.setParameter(self.getConst('ID_SCAN_COORD_MOVE_Y'))*1e-11
+        coordAbsY = self.getParameter(self.getConst('ID_SCAN_COORD_MOVE_Y'))*1e-11
         coordAbs = [coordAbsX, coordAbsY]
         return coordAbs
 
@@ -600,7 +600,7 @@ class ASC500Scanner(ASC500Base):
         """
         xPos = self.getParameter(self.getConst('ID_SCAN_OFFSET_X'))*1e-11
         yPos = self.getParameter(self.getConst('ID_SCAN_OFFSET_Y'))*1e-11
-        return position
+        return [xPos, yPos]
 
     def setScanFieldCentre(self, position):
         """

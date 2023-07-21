@@ -58,14 +58,18 @@ print("Frame number: ", out[0])
 print("Index       : ", out[1])
 print("Data size   : ", out[2])
 print("Meta data   : ", out[4])
-counts = np.asarray(out[3][:])
-print("Data        :\n", counts)
+values = np.asarray(out[3][:])
+print("Data        :\n", values)
 
-#%% Plot counts
+#%% Convert to physical values
+
+afmamp = [asc500.data.convValue2Phys(out[4], int(val)) for val in values]
+
+#%% Plot data
 
 plt.figure(0)
 
-plt.scatter((np.arange(bufSize) + 1) * 2.5e-6 * sampTime,
-            counts)
+plt.scatter(np.arange(bufSize)[1:] * sampTime,
+            afmamp[1:])
 plt.xlabel('Time / ms')
-plt.ylabel('Counts / 1')
+plt.ylabel('AFM amplitude / 1')

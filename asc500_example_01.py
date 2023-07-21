@@ -14,7 +14,7 @@ dllPath = "64bit_lib\\ASC500CL-LIB-WIN64-V2.7.13\\daisybase\\lib\\"
 
 asc500 = ASC500(binPath, dllPath)
 
-asc500.base.startServer('FindSim')
+asc500.base.startServer()
 
 asc500.base.sendProfile(binPath + 'afm.ngp')
 
@@ -24,7 +24,7 @@ sampTime = 1e-3
 average = 0
 chnNo = 0
 bufSize = 256
-expTime = 1e-3 # Counter exposure time
+expTime = sampTime # Counter exposure time
 
 asc500.data.configureChannel(chnNo,
                              asc500.base.getConst('CHANCONN_PERMANENT'),
@@ -68,7 +68,7 @@ print("Data        :\n", counts)
 
 plt.figure(0)
 
-plt.scatter((np.arange(bufSize) + 1) * 2.5e-6 * expTime * 1e3,
+plt.scatter(np.arange(bufSize) * sampTime * 1e3,
             counts)
 plt.xlabel('Time / ms')
 plt.ylabel('Counts / 1')
