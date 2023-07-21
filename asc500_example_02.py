@@ -25,7 +25,6 @@ sampTime = 1e-3
 average = 0
 chnNo = 0
 bufSize = 256
-expTime = 1e-6 # Counter exposure time in us
 
 asc500.data.configureChannel(chnNo,
                              asc500.base.getConst('CHANCONN_PERMANENT'),
@@ -66,7 +65,7 @@ print("Data        :\n", counts)
 
 plt.figure(0)
 
-plt.scatter((np.arange(bufSize) + 1) * 2.5e-6 * expTime * 1e3,
+plt.scatter((np.arange(bufSize) + 1) * 2.5e-6 * sampTime,
             counts)
 plt.xlabel('Time / ms')
 plt.ylabel('Counts / 1')
