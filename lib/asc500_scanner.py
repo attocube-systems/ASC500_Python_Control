@@ -34,7 +34,7 @@ class ASC500Scanner(ASC500Base):
         moving : int
             [0, 1] scanner is [not moving, moving]
         """
-        state = self.getParameter(self.getConst('ID_SCAN_STATUS'))
+        state = self.getScannerState()
         if state == ScannerState.MOVING \
                or state == ScannerState.SCAN4 \
                or state == ScannerState.SCAN6 :
