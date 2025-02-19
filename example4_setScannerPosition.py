@@ -35,7 +35,10 @@ while not asc500.base.getOutputStatus():
 asc500.scanner.setPositioningSpeed(1e-6)
 
 # Set the scanner position (in m).
-asc500.scanner.setPositionsXYRel([10e-6, 15e-6])
+asc500.scanner.setPositionsXYRel([5e-6, 5e-6])
+
+# Wait a short time for communication to take place
+time.sleep(0.05)
 
 # Wait while scanner is moving.
 print('Scanner State: {}'.format(asc500.scanner.getScannerStateMoving()))
